@@ -47,13 +47,13 @@ jobs:
 
       - name: Test
         run: |
-          mkdir -p $artifact_directory/build
-          go test ./... -count=1 -v -p 1 -coverprofile $artifact_directory/coverage.out -coverpkg=./...
+          mkdir -p testResults
+          go test -count=1 -p=1 ./... -v -coverprofile testResults/coverage.out -coverpkg=./...
 
 
       - name: Test coverage report
         run: |
-          go tool cover -func=$artifact_directory/coverage.out
+          go tool cover -func=testResults/coverage.out
 
 
 
