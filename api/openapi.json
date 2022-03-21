@@ -1,0 +1,517 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is library server",
+    "version": "1.0.0",
+    "title": "BookStore",
+    "termsOfService": "http://xyz.com",
+    "contact": {
+      "email": "abc@zopsmart.com"
+    }
+  },
+  "host": "xyz.com",
+  "basePath": "/v2",
+  "tags": [
+    {
+      "name": "book",
+      "description": "Everything about a book",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://xyz.com"
+      }
+    },
+    {
+      "name": "review",
+      "description": "Everything about a review",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "http://xyz.com"
+      }
+    }
+  ],
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/book": {
+      "post": {
+        "tags": [
+          "book"
+        ],
+        "summary": "Add a new book to the store",
+        "description": "",
+        "operationId": "addBook",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Book object that needs to be added to the store",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error happened due to db execution issue"
+          }
+        }
+      }
+    },
+    "/book/{id}": {
+      "get": {
+        "tags": [
+          "book"
+        ],
+        "summary": "Get a book detail",
+        "description": "",
+        "operationId": "getBook",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of book that needs to be fetched",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error happened due to db query issue"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "book"
+        ],
+        "summary": "Update a book detail",
+        "description": "",
+        "operationId": "updateBook",
+        "consumes": [
+          "application/json",
+          "application/xml"
+        ],
+        "produces": [
+          "application/xml",
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of book that needs to be updated",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Book object that needs to be added to the store",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Book"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "book"
+        ],
+        "summary": "delete a book detail",
+        "description": "",
+        "operationId": "deleteBook",
+        "consumes": [
+          "application/json",
+          "application/xml"
+        ],
+        "produces": [
+          "application/xml",
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of book that needs to be updated",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reviews/{book_id}": {
+      "get": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Get all reviews of a book",
+        "description": "",
+        "operationId": "getReviews",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "book_id",
+            "in": "path",
+            "description": "ID of book that needs to be fetched",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Review"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "401": {
+            "description": "Unauthorised"
+          }
+        }
+      }
+    },
+    "/review/{id}": {
+      "post": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Post a review of a book",
+        "description": "",
+        "operationId": "postReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of book to which review is posted",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Review details that need to be added to the book",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Review"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation"
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "405": {
+            "description": "Invalid input"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Update review of a book",
+        "description": "",
+        "operationId": "updateReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of review which is to be updated",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Review details that need to be added to the book",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Review"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation"
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "405": {
+            "description": "Invalid input"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "review"
+        ],
+        "summary": "Delete review of a book",
+        "description": "",
+        "operationId": "deleteReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the review which is to be deleted",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "bearer_token",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation"
+          },
+          "400": {
+            "description": "Invalid id"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "405": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "petstore_auth": {
+      "type": "oauth2",
+      "authorizationUrl": "http://petstore.swagger.io/oauth/dialog",
+      "flow": "implicit",
+      "scopes": {
+        "write:pets": "modify pets in your account",
+        "read:pets": "read your pets"
+      }
+    }
+  },
+  "definitions": {
+    "Book": {
+      "type": "object",
+      "required": [
+        "title",
+        "author",
+        "summary",
+        "genre",
+        "publish_date",
+        "publisher",
+        "language"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "publish_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "regd_number": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "page_count": {
+          "type": "integer"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "Review": {
+      "type": "object",
+      "required": [
+        "ctime"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        "ctime": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  }
+}

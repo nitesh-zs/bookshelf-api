@@ -1,0 +1,89 @@
+name: Go CI
+
+on:
+  push:
+    branches: "*"
+
+env:
+  APP_NAME: Bookshelf
+  HTTP_PORT: 4000
+  ARTIFACT_DIRECTORY: bookshelf_build
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.2
+        ports:
+          - 2006:5432
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+          POSTGRES_DB: books
+
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.6
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          # Configure git to access private repo using Personal Access Token.
+          git config --global url."https://${{ secrets.PAT }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+          git config --global http.sslVerify false
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+
+
+      - name: Test
+        run: |
+          mkdir -p $artifact_directory/build
+          go test ./... -count=1 -v -p 1 -coverprofile $artifact_directory/coverage.out -coverpkg=./...
+
+
+      - name: Test coverage report
+        run: |
+          go tool cover -func=$artifact_directory/coverage.out
+
+
+
+  code_quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    container: golangci/golangci-lint:v1.44.2
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17.6
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          git config --global url."https://${{ secrets.PAT }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+          git config --global http.sslVerify false
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+
+
+      - name: GolangCI-Lint
+        run: |
+          git config --global url."https://${{ secrets.PAT }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+          golangci-lint cache clean
+          golangci-lint run -v --timeout 3m0s
