@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
 	"io/ioutil"
+	"os"
 
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
@@ -19,6 +23,34 @@ func Image(c *krogo.Context) (interface{}, error) {
 	return template.Template{Directory: c.TemplateDir, File: i, Data: nil, Type: template.FILE}, nil
 }
 
+func FetchImage(c *krogo.Context) (interface{}, error) {
+	fileName := c.PathParam("id")
+	if fileName == "" {
+		return nil, errors.MissingParam{Param: []string{"id"}}
+	}
+	filePath := c.TemplateDir + "/" + fileName
+	f, err := os.Open(filePath)
+	defer f.Close()
+
+	if err != nil {
+		return nil, errors.Error("Cant open file")
+	}
+
+	i, formatName, err := image.Decode(f)
+	//fmt.Println(formatName)
+	if err != nil {
+		return nil, errors.Error("Cant decode file. Format : " + formatName)
+	}
+
+	b := new(bytes.Buffer)
+	png.Encode(b, i)
+
+	return template.File{
+		Content:     b.Bytes(),
+		ContentType: "image/png",
+	}, nil
+}
+
 func UploadFile(c *krogo.Context) (interface{}, error) {
 	m := map[string]string{
 		"Content-Type":                "text/html; charset=utf-8",
@@ -29,7 +61,7 @@ func UploadFile(c *krogo.Context) (interface{}, error) {
 
 	r := c.Request()
 	r.ParseMultipartForm(10 << 20)
-	
+
 	file, handler, err := r.FormFile("myFile")
 	if err != nil {
 		fmt.Println("Error Retrieving the File")

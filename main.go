@@ -15,7 +15,7 @@ func main() {
 
 	// overriding default template location.
 	k.TemplateDir = rootPath + "/templates"
-	k.GET("/image/{id}", handler.Image)
+	k.GET("/image/{id}", handler.FetchImage)
 	k.POST("/upload", handler.UploadFile)
 	k.Start()
 }
