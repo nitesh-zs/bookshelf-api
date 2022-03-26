@@ -2,11 +2,12 @@ package util
 
 import (
 	"encoding/json"
+	"io"
+	"net/http"
+
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"io"
-	"net/http"
 )
 
 func GetTokenData(ctx *krogo.Context) (*model.User, error) {
@@ -20,7 +21,7 @@ func GetTokenData(ctx *krogo.Context) (*model.User, error) {
 
 	client := http.DefaultClient
 
-	req, _ := http.NewRequest(http.MethodGet, "https://openidconnect.googleapis.com/v1/userinfo", nil)
+	req, _ := http.NewRequest(http.MethodGet, "https://openidconnect.googleapis.com/v1/userinfo", http.NoBody)
 	req.Header.Set("Authorization", "Bearer "+token.Value)
 
 	res, err := client.Do(req)
@@ -28,6 +29,8 @@ func GetTokenData(ctx *krogo.Context) (*model.User, error) {
 		ctx.Logger.Error(err)
 		return nil, errors.InternalServerErr{}
 	}
+
+	defer res.Body.Close()
 
 	body, err := io.ReadAll(res.Body)
 	if err != nil {

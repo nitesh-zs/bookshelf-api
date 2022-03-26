@@ -1,6 +1,8 @@
 package user
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -8,7 +10,6 @@ import (
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/mocks"
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"testing"
 )
 
 func user1() *model.User {

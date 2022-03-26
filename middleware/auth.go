@@ -2,13 +2,15 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/krogertechnology/krogo/pkg/errors"
-	"github.com/krogertechnology/krogo/pkg/log"
+	"net/http"
+	"time"
+
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/idtoken"
-	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/krogertechnology/krogo/pkg/errors"
 )
 
 func Login(conf *oauth2.Config) func(inner http.Handler) http.Handler {
@@ -17,10 +19,12 @@ func Login(conf *oauth2.Config) func(inner http.Handler) http.Handler {
 			if r.URL.Path == "/login" {
 				state := uuid.NewString() + uuid.NewString()
 
+				const CookieLife = 30
+
 				cookie := &http.Cookie{
-					Name:   "state",
-					Value:  state,
-					MaxAge: 100,
+					Name:    "state",
+					Value:   state,
+					Expires: time.Now().Add(CookieLife * time.Second),
 				}
 
 				http.SetCookie(w, cookie)
@@ -36,70 +40,60 @@ func Login(conf *oauth2.Config) func(inner http.Handler) http.Handler {
 	}
 }
 
-func Redirect(logger log.Logger, conf *oauth2.Config) func(inner http.Handler) http.Handler {
+func Redirect(conf *oauth2.Config) func(inner http.Handler) http.Handler {
 	return func(inner http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path == "/google/redirect" {
-				// verify CSRF token
-				cookie, err := r.Cookie("state")
-				if err != nil {
-					logger.Error(err)
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-
-				if state := cookie.Value; state != r.URL.Query().Get("state") {
-					w.WriteHeader(http.StatusBadRequest)
-					return
-				}
-
-				// exchange grant code for token
-				tok, err := conf.Exchange(context.Background(), r.URL.Query().Get("code"))
-				if err != nil {
-					logger.Error(err)
-					w.WriteHeader(http.StatusBadRequest)
-					fmt.Fprintf(w, `{"error":{"code":"invalid_request","reason":"missing param code"}}`)
-					return
-				}
-
-				idToken := tok.Extra("id_token").(string)
-
-				// set authorization cookie
-				idCookie := &http.Cookie{
-					Name:    "auth",
-					Value:   idToken,
-					Expires: tok.Expiry,
-					Path:    "/",
-				}
-
-				accessCookie := &http.Cookie{
-					Name:    "access",
-					Value:   tok.AccessToken,
-					Expires: tok.Expiry,
-					Path:    "/",
-				}
-
-				http.SetCookie(w, idCookie)
-				http.SetCookie(w, accessCookie)
-				http.Redirect(w, r, "http://localhost:8000/register", http.StatusFound)
-
+			if r.URL.Path != "/google/redirect" {
+				inner.ServeHTTP(w, r)
 				return
 			}
 
-			inner.ServeHTTP(w, r)
+			// verify CSRF token
+			if ok := verifyCSRFToken(w, r); !ok {
+				return
+			}
+
+			// exchange grant code for token
+			tok, err := conf.Exchange(context.Background(), r.URL.Query().Get("code"))
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprintf(w, `{"error":{"code":"invalid_request","reason":"missing param code"}}`)
+				return
+			}
+
+			idToken := tok.Extra("id_token").(string)
+
+			// set authorization cookie
+			idCookie := &http.Cookie{
+				Name:    "auth",
+				Value:   idToken,
+				Expires: tok.Expiry,
+				Path:    "/",
+			}
+
+			accessCookie := &http.Cookie{
+				Name:    "access",
+				Value:   tok.AccessToken,
+				Expires: tok.Expiry,
+				Path:    "/",
+			}
+
+			http.SetCookie(w, idCookie)
+			http.SetCookie(w, accessCookie)
+			http.Redirect(w, r, "http://localhost:8000/register", http.StatusFound)
 		})
 	}
 }
 
-func ValidateToken(logger log.Logger, conf *oauth2.Config) func(inner http.Handler) http.Handler {
+func ValidateToken(conf *oauth2.Config) func(inner http.Handler) http.Handler {
 	return func(inner http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 			if r.URL.Path == "/register" {
 				inner.ServeHTTP(w, r)
 				return
 			}
 
+			// get ID token from cookies
 			tokenAuth, err := r.Cookie("auth")
 			if err != nil {
 				w.WriteHeader(http.StatusForbidden)
@@ -107,17 +101,9 @@ func ValidateToken(logger log.Logger, conf *oauth2.Config) func(inner http.Handl
 				return
 			}
 
-			payload, err := idtoken.Validate(context.Background(), tokenAuth.Value, conf.ClientID)
-			if err != nil {
-				logger.Error(err)
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, `{"error":{"code":"invalid_request","reason":"user not authorized"}}`)
-				return
-			}
-
-			if payload.Issuer != "https://accounts.google.com" && payload.Issuer != "accounts.google.com" {
-				w.WriteHeader(http.StatusUnauthorized)
-				fmt.Fprintf(w, `{"error":{"code":"invalid_request","reason":"user not authorized"}}`)
+			// validate ID token
+			ok := validateIDToken(tokenAuth.Value, conf.ClientID, w)
+			if !ok {
 				return
 			}
 
@@ -133,9 +119,17 @@ func Logout(inner http.Handler) http.Handler {
 
 			token, _ := r.Cookie("access")
 
-			req, _ := http.NewRequest(http.MethodPost, "https://oauth2.googleapis.com/revoke?token="+token.Value, nil)
+			req, _ := http.NewRequest(http.MethodPost, "https://oauth2.googleapis.com/revoke?token="+token.Value, http.NoBody)
 
-			res, _ := client.Do(req)
+			res, err := client.Do(req)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprint(w, errors.InternalServerErr{})
+				return
+			}
+
+			defer res.Body.Close()
+
 			if res.StatusCode != http.StatusOK {
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprint(w, errors.InternalServerErr{})
@@ -161,4 +155,36 @@ func Logout(inner http.Handler) http.Handler {
 
 		inner.ServeHTTP(w, r)
 	})
+}
+
+func verifyCSRFToken(w http.ResponseWriter, r *http.Request) bool {
+	cookie, err := r.Cookie("state")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return false
+	}
+
+	if cookie.Value != r.URL.Query().Get("state") {
+		w.WriteHeader(http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
+func validateIDToken(token, clientID string, w http.ResponseWriter) bool {
+	payload, err := idtoken.Validate(context.Background(), token, clientID)
+
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, `{"error":{"code":"invalid_request","reason":"user not authorized"}}`)
+
+		return false
+	}
+
+	if payload.Issuer != "https://accounts.google.com" && payload.Issuer != "accounts.google.com" {
+		return false
+	}
+
+	return true
 }

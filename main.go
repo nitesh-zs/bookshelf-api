@@ -39,12 +39,12 @@ func main() {
 	}
 
 	// set auth middleware
-	k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(k.Logger, conf),
-		middleware.ValidateToken(k.Logger, conf), middleware.Logout)
+	k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
+		middleware.ValidateToken(conf), middleware.Logout)
 
 	uStore := user.New()
-	uSvc := uSvc.New(uStore)
-	authHandler := auth.New(uSvc)
+	userSvc := uSvc.New(uStore)
+	authHandler := auth.New(userSvc)
 
 	k.GET("/hello", func(c *krogo.Context) (interface{}, error) {
 		return "hello", nil

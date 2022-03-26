@@ -2,6 +2,8 @@ package user
 
 import (
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/bmizerany/assert"
 	"github.com/google/uuid"
@@ -12,7 +14,6 @@ import (
 	"github.com/krogertechnology/krogo/pkg/krogo/config"
 	"github.com/krogertechnology/krogo/pkg/log"
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"testing"
 )
 
 func user1() *model.User {
@@ -84,7 +85,6 @@ func TestStore_Exists(t *testing.T) {
 		assert.Equal(t, tc.res, exists, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
-
 }
 
 func TestStore_Create(t *testing.T) {
@@ -107,7 +107,7 @@ func TestStore_Create(t *testing.T) {
 		{
 			"DB error",
 			&model.User{},
-			errors.DB{errors.Error("DB Error")},
+			errors.DB{Err: errors.Error("DB Error")},
 			mock.ExpectExec(createUser).WillReturnError(errors.Error("DB Error")),
 		},
 	}
