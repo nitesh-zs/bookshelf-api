@@ -19,7 +19,7 @@ type Book struct {
 	Language    string    `json:"language"`
 	PageCount   int       `json:"pageCount"`
 	URL         string    `json:"url"`
-	Image       Media     `json:"images"`
+	Image       Media     `json:"image"`
 }
 
 // Media struct holds multimedia data
