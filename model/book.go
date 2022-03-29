@@ -1,8 +1,6 @@
 package model
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 )
 
@@ -13,17 +11,17 @@ type Book struct {
 	Author      string    `json:"author"`
 	Summary     string    `json:"summary"`
 	Genre       string    `json:"genre"`
-	PublishDate time.Time `json:"publishDate"`
+	PublishYear int       `json:"year"`
 	RegNum      string    `json:"regNum"`
 	Publisher   string    `json:"publisher"`
 	Language    string    `json:"language"`
 	PageCount   int       `json:"pageCount"`
-	URL         string    `json:"url"`
-	Image       Media     `json:"image"`
+	ImageURI    string    `json:"imageUri"`
 }
 
 // Media struct holds multimedia data
 type Media struct {
 	Data        []byte `json:"data"`
 	ContentType string `json:"contentType"`
+	Path        string `json:"path"`
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
@@ -45,4 +46,49 @@ func GetTokenData(ctx *krogo.Context) (*model.User, error) {
 	}
 
 	return &tData, nil
+}
+
+// Pagination filters page query parameter and returns page instance
+func Pagination(ctx *krogo.Context) (model.Page, error) {
+	page := model.Page{}
+
+	size := ctx.Param("size")
+	if size == "" {
+		page.Size = model.DefaultPageSize
+	} else {
+		size, err := strconv.Atoi(size)
+		if err != nil {
+			return page, errors.InvalidParam{Param: []string{"size"}}
+		}
+
+		page.Size = size
+	}
+
+	p := ctx.Param("page")
+	if p == "" {
+		page.Offset = model.DefaultPageOffset
+	} else {
+		p, err := strconv.Atoi(p)
+		if err != nil {
+			return page, errors.InvalidParam{Param: []string{"offset"}}
+		}
+
+		page.Offset = (p - 1) * page.Size
+	}
+
+	return page, nil
+}
+
+// IsAdmin checks if a user is admin or not
+func IsAdmin(user *model.User) bool {
+	if user.Email == "nitesh.saxena@zopsmart.com" {
+		return true
+	}
+
+	return false
+}
+
+// FilterList returns a list of available filters for querying books
+func FilterList() []string {
+	return []string{"genre", "author", "year", "language"}
 }

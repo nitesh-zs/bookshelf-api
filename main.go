@@ -5,12 +5,14 @@ import (
 	dbmigration "github.com/krogertechnology/krogo/cmd/krogo/migration/dbMigration"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/handler/auth"
-	"github.com/nitesh-zs/bookshelf-api/middleware"
+	bookHandler "github.com/nitesh-zs/bookshelf-api/handler/book"
+
+	//"github.com/nitesh-zs/bookshelf-api/middleware"
 	"github.com/nitesh-zs/bookshelf-api/migrations"
+	bookSvc "github.com/nitesh-zs/bookshelf-api/service/book"
 	uSvc "github.com/nitesh-zs/bookshelf-api/service/user"
+	"github.com/nitesh-zs/bookshelf-api/store/book"
 	"github.com/nitesh-zs/bookshelf-api/store/user"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 func main() {
@@ -26,31 +28,36 @@ func main() {
 		return
 	}
 
-	conf := &oauth2.Config{
-		ClientID:     k.Config.Get("CLIENT_ID"),
-		ClientSecret: k.Config.Get("CLIENT_SECRET"),
-		RedirectURL:  k.Config.Get("REDIRECT_URL"),
-		Scopes: []string{
-			"email",
-			"openid",
-			"profile",
-		},
-		Endpoint: google.Endpoint,
-	}
+	//conf := &oauth2.Config{
+	//	ClientID:     k.Config.Get("CLIENT_ID"),
+	//	ClientSecret: k.Config.Get("CLIENT_SECRET"),
+	//	RedirectURL:  k.Config.Get("REDIRECT_URL"),
+	//	Scopes: []string{
+	//		"email",
+	//		"openid",
+	//		"profile",
+	//	},
+	//	Endpoint: google.Endpoint,
+	//}
 
 	// set auth middleware
-	k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
-		middleware.ValidateToken(conf), middleware.Logout)
+	//k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
+	//middleware.ValidateToken(conf), middleware.Logout)
 
 	uStore := user.New()
 	userSvc := uSvc.New(uStore)
 	authHandler := auth.New(userSvc)
+
+	bookStore := book.New()
+	bookSvc := bookSvc.New(bookStore)
+	bookHandler := bookHandler.New(bookSvc)
 
 	k.GET("/hello", func(c *krogo.Context) (interface{}, error) {
 		return "hello", nil
 	})
 
 	k.GET("/register", authHandler.Register)
+	k.GET("/book", bookHandler.Get)
 
 	k.Start()
 }

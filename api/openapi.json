@@ -9,7 +9,7 @@
       "email": "abc@zopsmart.com"
     }
   },
-  "host": "xyz.com",
+  "host": "localhost:8000",
   "basePath": "/v2",
   "tags": [
     {
@@ -35,13 +35,12 @@
   ],
   "paths": {
     "/book": {
-      "post": {
+      "get": {
         "tags": [
           "book"
         ],
-        "summary": "Add a new book to the store",
-        "description": "",
-        "operationId": "addBook",
+        "summary": "fetch booklist by given filter",
+        "description": "default: all book, \nfilters: author, language, year, category(genre), \noffset: page, count",
         "consumes": [
           "application/json"
         ],
@@ -50,26 +49,45 @@
         ],
         "parameters": [
           {
-            "name": "bearer_token",
             "in": "header",
+            "name": "bearer_token",
             "required": true,
-            "type": "string"
+            "type": "string",
+            "description": "token for authentication"
           },
           {
-            "in": "body",
-            "name": "body",
-            "description": "Book object that needs to be added to the store",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/Book"
-            }
+            "in": "query",
+            "name": "filter",
+            "type": "string",
+            "description": "type of filter to be applied. \n if nil, no filter will be applied by default."
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "type": "string",
+            "description": "value against which the list will be filtered."
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer",
+            "description": "page number"
+          },
+          {
+            "in": "query",
+            "name": "count",
+            "type": "integer",
+            "description": "count number"
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created",
+          "200": {
+            "description": "fetch successfully",
             "schema": {
-              "$ref": "#/definitions/Book"
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ShortBook"
+              }
             }
           },
           "400": {
@@ -80,9 +98,6 @@
           },
           "403": {
             "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error happened due to db execution issue"
           }
         }
       }
@@ -129,12 +144,6 @@
           },
           "401": {
             "description": "Unauthorised"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error happened due to db query issue"
           }
         }
       },
@@ -245,186 +254,6 @@
           }
         }
       }
-    },
-    "/reviews/{book_id}": {
-      "get": {
-        "tags": [
-          "review"
-        ],
-        "summary": "Get all reviews of a book",
-        "description": "",
-        "operationId": "getReviews",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "book_id",
-            "in": "path",
-            "description": "ID of book that needs to be fetched",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "bearer_token",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/Review"
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid id"
-          },
-          "401": {
-            "description": "Unauthorised"
-          }
-        }
-      }
-    },
-    "/review/{id}": {
-      "post": {
-        "tags": [
-          "review"
-        ],
-        "summary": "Post a review of a book",
-        "description": "",
-        "operationId": "postReview",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of book to which review is posted",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "bearer_token",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Review details that need to be added to the book",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/Review"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "successful operation"
-          },
-          "400": {
-            "description": "Invalid id"
-          },
-          "401": {
-            "description": "Unauthorised"
-          },
-          "405": {
-            "description": "Invalid input"
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "review"
-        ],
-        "summary": "Update review of a book",
-        "description": "",
-        "operationId": "updateReview",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of review which is to be updated",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "bearer_token",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "description": "Review details that need to be added to the book",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/Review"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "successful operation"
-          },
-          "400": {
-            "description": "Invalid id"
-          },
-          "401": {
-            "description": "Unauthorised"
-          },
-          "405": {
-            "description": "Invalid input"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "review"
-        ],
-        "summary": "Delete review of a book",
-        "description": "",
-        "operationId": "deleteReview",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of the review which is to be deleted",
-            "required": true,
-            "type": "integer",
-            "format": "int64"
-          },
-          {
-            "name": "bearer_token",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation"
-          },
-          "400": {
-            "description": "Invalid id"
-          },
-          "401": {
-            "description": "Unauthorised"
-          },
-          "405": {
-            "description": "Invalid input"
-          }
-        }
-      }
     }
   },
   "securityDefinitions": {
@@ -439,18 +268,50 @@
     }
   },
   "definitions": {
+    "ShortBook": {
+      "type": "object",
+      "required": [
+        "bookid",
+        "title",
+        "author",
+        "genre",
+        "image"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "bookid": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        }
+      }
+    },
     "Book": {
       "type": "object",
       "required": [
+        "bookid",
         "title",
         "author",
         "summary",
         "genre",
         "publish_date",
+        "regd_number",
         "publisher",
         "language"
       ],
       "properties": {
+        "bookid": {
+          "type": "integer"
+        },
         "title": {
           "type": "string"
         },
@@ -476,36 +337,8 @@
         "language": {
           "type": "string"
         },
-        "page_count": {
-          "type": "integer"
-        },
         "url": {
           "type": "string"
-        }
-      }
-    },
-    "Review": {
-      "type": "object",
-      "required": [
-        "ctime"
-      ],
-      "properties": {
-        "text": {
-          "type": "string"
-        },
-        "rating": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            3,
-            4,
-            5
-          ]
-        },
-        "ctime": {
-          "type": "string",
-          "format": "date"
         }
       }
     }
