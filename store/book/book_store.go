@@ -5,6 +5,7 @@ import (
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/model"
+	"strconv"
 )
 
 type store struct{}
@@ -14,13 +15,10 @@ func New() store {
 	return store{}
 }
 
-func (s store) Get(ctx *krogo.Context, page *model.Page, filter, value string) ([]model.BookRes, error) {
+func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error) {
 	books := make([]model.BookRes, 0)
 
-	query, err := s.getQueryBuilder(filter, value)
-	if err != nil {
-		return nil, err
-	}
+	query := s.getQueryBuilder(filters)
 
 	rows, err := ctx.DB().Query(query, page.Offset, page.Size)
 	if err != nil {
@@ -79,22 +77,36 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error 
 	return nil
 }
 
-func (s store) getQueryBuilder(filter, value string) (string, error) {
+func (s store) getQueryBuilder(f *model.Filters) string {
 	query := `select id, genre, author, title, image_uri from book`
+	whereClause := ""
 
-	if filter != "" && value != "" {
-		query += `where ` + filter + `= '` + value + `' offset $1 limit $2;`
-		return query, nil
+	if f.Author != "" {
+		whereClause += ` author = '` + f.Author + `' AND`
 	}
 
-	if filter == "" && value == "" {
-		query += ` offset $1 limit $2;`
-		return query, nil
+	if f.Language != "" {
+		whereClause += ` language = '` + f.Language + `' AND`
 	}
 
-	if filter == "" {
-		return "", errors.MissingParam{Param: []string{"filter"}}
+	if f.Genre != "" {
+		whereClause += ` genre = '` + f.Genre + `' AND`
 	}
 
-	return "", errors.MissingParam{Param: []string{"keyword"}}
+	if f.Year != 0 {
+		year := strconv.Itoa(f.Year)
+		whereClause += ` year = '` + year + `' AND`
+	}
+
+	if len(whereClause) > 0 {
+		whereClause = whereClause[:len(whereClause)-4]
+	}
+
+	if whereClause != "" {
+		query += " WHERE" + whereClause
+	}
+
+	query += ` OFFSET $1 LIMIT $2`
+
+	return query
 }

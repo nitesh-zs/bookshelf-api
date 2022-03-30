@@ -18,7 +18,7 @@ type UserStore interface {
 
 // BookStore enables DB operations for book related data
 type BookStore interface {
-	Get(ctx *krogo.Context, page *model.Page, filter string, value string) ([]model.BookRes, error)
+	Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error)
 	GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
 	Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
