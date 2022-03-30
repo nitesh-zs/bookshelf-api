@@ -9,8 +9,8 @@ import (
 // UserStore enables DB operations for user related data
 type UserStore interface {
 
-	// Exists checks if a user with given ID exists in DB
-	Exists(ctx *krogo.Context, email string) (bool, error)
+	// GetByEmail returns a user registered with the given email
+	GetByEmail(ctx *krogo.Context, email string) (*model.User, error)
 
 	// Create creates a new user in DB
 	Create(ctx *krogo.Context, user *model.User) error

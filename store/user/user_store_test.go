@@ -18,7 +18,7 @@ import (
 
 func user1() *model.User {
 	return &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.Nil,
 		Email: "nitesh.saxena@zopsmart.com",
 		Name:  "Nitesh",
 		Type:  "admin",
@@ -45,44 +45,47 @@ func initializeTest(t *testing.T) (sqlmock.Sqlmock, *krogo.Context, store) {
 	return mock, ctx, s
 }
 
-func TestStore_Exists(t *testing.T) {
+func TestStore_GetByEmail(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	row := sqlmock.NewRows([]string{"id"}).AddRow("1")
+	user := user1()
+
+	row := sqlmock.NewRows([]string{"id", "email", "name", "type"}).
+		AddRow(uuid.Nil, "nitesh.saxena@zopsmart.com", "Nitesh", "admin")
 
 	tests := []struct {
 		desc  string
 		email string
-		res   bool
+		res   *model.User
 		err   error
 		query *sqlmock.ExpectedQuery
 	}{
 		{
 			"Exists",
 			"nitesh.saxena@zopsmart.com",
-			true,
+			user,
 			nil,
-			mock.ExpectQuery(getUserID).WithArgs("nitesh.saxena@zopsmart.com").WillReturnRows(row),
+			mock.ExpectQuery(getUserByEmail).WithArgs("nitesh.saxena@zopsmart.com").WillReturnRows(row),
 		},
 		{
 			"Not Exists",
 			"abc@abc.com",
-			false,
+			nil,
 			errors.EntityNotFound{Entity: "user", ID: "abc@abc.com"},
-			mock.ExpectQuery(getUserID).WithArgs("abc@abc.com").WillReturnError(sql.ErrNoRows),
+			mock.ExpectQuery(getUserByEmail).WithArgs("abc@abc.com").WillReturnError(sql.ErrNoRows),
 		},
 		{
 			"DB error",
 			"xyz@xyz.com",
-			false,
+			nil,
 			errors.DB{Err: errors.Error("DB error")},
-			mock.ExpectQuery(getUserID).WithArgs("xyz@xyz.com").WillReturnError(errors.Error("DB error")),
+			mock.ExpectQuery(getUserByEmail).WithArgs("xyz@xyz.com").WillReturnError(errors.Error("DB error")),
 		},
 	}
 
 	for _, tc := range tests {
-		exists, err := s.Exists(ctx, tc.email)
-		assert.Equal(t, tc.res, exists, tc.desc)
+		user, err := s.GetByEmail(ctx, tc.email)
+		assert.Equal(t, tc.res, user, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }

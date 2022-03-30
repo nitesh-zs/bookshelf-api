@@ -1,6 +1,6 @@
 package user
 
 const (
-	getUserID  = `select id from "user" where email = $1`
-	createUser = `insert into "user"(id, email, name, type) values($1, $2, $3, $4)`
+	getUserByEmail = `select * from "user" where email = $1`
+	createUser     = `insert into "user"(id, email, name, type) values($1, $2, $3, $4)`
 )
