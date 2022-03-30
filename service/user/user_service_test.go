@@ -170,5 +170,4 @@ func TestSvc_IsAdmin(t *testing.T) {
 		assert.Equal(t, tc.res, res, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
-
 }

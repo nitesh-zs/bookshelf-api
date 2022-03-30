@@ -5,11 +5,11 @@ import (
 	dbmigration "github.com/krogertechnology/krogo/cmd/krogo/migration/dbMigration"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/handler/auth"
-	bookHandler "github.com/nitesh-zs/bookshelf-api/handler/book"
+	bHandler "github.com/nitesh-zs/bookshelf-api/handler/book"
 
-	//"github.com/nitesh-zs/bookshelf-api/middleware"
+	// "github.com/nitesh-zs/bookshelf-api/middleware"
 	"github.com/nitesh-zs/bookshelf-api/migrations"
-	bookSvc "github.com/nitesh-zs/bookshelf-api/service/book"
+	bSvc "github.com/nitesh-zs/bookshelf-api/service/book"
 	uSvc "github.com/nitesh-zs/bookshelf-api/service/user"
 	"github.com/nitesh-zs/bookshelf-api/store/book"
 	"github.com/nitesh-zs/bookshelf-api/store/user"
@@ -28,7 +28,8 @@ func main() {
 		return
 	}
 
-	//conf := &oauth2.Config{
+	//nolint:gocritic //will remove the code later upon finalization of client side auth flow
+	// conf := &oauth2.Config{
 	//	ClientID:     k.Config.Get("CLIENT_ID"),
 	//	ClientSecret: k.Config.Get("CLIENT_SECRET"),
 	//	RedirectURL:  k.Config.Get("REDIRECT_URL"),
@@ -38,19 +39,19 @@ func main() {
 	//		"profile",
 	//	},
 	//	Endpoint: google.Endpoint,
-	//}
+	// }
 
 	// set auth middleware
-	//k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
-	//middleware.ValidateToken(conf), middleware.Logout)
+	// k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
+	// middleware.ValidateToken(conf), middleware.Logout)
 
 	uStore := user.New()
 	userSvc := uSvc.New(uStore)
 	authHandler := auth.New(userSvc)
 
 	bookStore := book.New()
-	bookSvc := bookSvc.New(bookStore)
-	bookHandler := bookHandler.New(bookSvc)
+	bookSvc := bSvc.New(bookStore)
+	bookHandler := bHandler.New(bookSvc)
 
 	k.GET("/hello", func(c *krogo.Context) (interface{}, error) {
 		return "hello", nil

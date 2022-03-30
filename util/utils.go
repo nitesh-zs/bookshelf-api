@@ -79,15 +79,6 @@ func Pagination(ctx *krogo.Context) (model.Page, error) {
 	return page, nil
 }
 
-// IsAdmin checks if a user is admin or not
-func IsAdmin(user *model.User) bool {
-	if user.Email == "nitesh.saxena@zopsmart.com" {
-		return true
-	}
-
-	return false
-}
-
 // FilterList returns a list of available filters for querying books
 func FilterList() []string {
 	return []string{"genre", "author", "year", "language"}

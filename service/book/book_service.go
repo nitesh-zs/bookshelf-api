@@ -16,7 +16,7 @@ func New(s store.BookStore) svc {
 	return svc{s}
 }
 
-func (s svc) Get(ctx *krogo.Context, page *model.Page, filter string, value string) ([]model.BookRes, error) {
+func (s svc) Get(ctx *krogo.Context, page *model.Page, filter, value string) ([]model.BookRes, error) {
 	books, err := s.store.Get(ctx, page, filter, value)
 	return books, err
 }
