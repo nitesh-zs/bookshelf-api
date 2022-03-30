@@ -89,47 +89,47 @@ func (m *MockBookStore) EXPECT() *MockBookStoreMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockBookStore) Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (m *MockBookStore) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, book, user)
+	ret := m.ctrl.Call(m, "Create", ctx, book)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockBookStoreMockRecorder) Create(ctx, book, user interface{}) *gomock.Call {
+func (mr *MockBookStoreMockRecorder) Create(ctx, book interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBookStore)(nil).Create), ctx, book, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBookStore)(nil).Create), ctx, book)
 }
 
 // Delete mocks base method.
-func (m *MockBookStore) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
+func (m *MockBookStore) Delete(ctx *krogo.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, id, user)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockBookStoreMockRecorder) Delete(ctx, id, user interface{}) *gomock.Call {
+func (mr *MockBookStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBookStore)(nil).Delete), ctx, id, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBookStore)(nil).Delete), ctx, id)
 }
 
 // Get mocks base method.
-func (m *MockBookStore) Get(ctx *krogo.Context, page *model.Page, filter, value string) ([]model.BookRes, error) {
+func (m *MockBookStore) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, page, filter, value)
+	ret := m.ctrl.Call(m, "Get", ctx, page, filters)
 	ret0, _ := ret[0].([]model.BookRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockBookStoreMockRecorder) Get(ctx, page, filter, value interface{}) *gomock.Call {
+func (mr *MockBookStoreMockRecorder) Get(ctx, page, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBookStore)(nil).Get), ctx, page, filter, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBookStore)(nil).Get), ctx, page, filters)
 }
 
 // GetByID mocks base method.
@@ -148,16 +148,16 @@ func (mr *MockBookStoreMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockBookStore) Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (m *MockBookStore) Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, book, user)
+	ret := m.ctrl.Call(m, "Update", ctx, book)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockBookStoreMockRecorder) Update(ctx, book, user interface{}) *gomock.Call {
+func (mr *MockBookStoreMockRecorder) Update(ctx, book interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockBookStore)(nil).Update), ctx, book, user)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockBookStore)(nil).Update), ctx, book)
 }

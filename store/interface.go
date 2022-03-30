@@ -20,7 +20,7 @@ type UserStore interface {
 type BookStore interface {
 	Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error)
 	GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
-	Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
-	Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
-	Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error
+	Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error)
+	Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error)
+	Delete(ctx *krogo.Context, id uuid.UUID) error
 }

@@ -1,11 +1,12 @@
 package book
 
 import (
+	"strconv"
+
 	"github.com/google/uuid"
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"strconv"
 )
 
 type store struct{}
@@ -65,15 +66,15 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return nil, nil
 }
 
-func (s store) Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
 	return uuid.Nil, nil
 }
 
-func (s store) Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (s store) Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
 	return uuid.Nil, nil
 }
 
-func (s store) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
+func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
 	return nil
 }
 
