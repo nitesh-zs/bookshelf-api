@@ -14,7 +14,7 @@ func New() store {
 	return store{}
 }
 
-func (s store) Get(ctx *krogo.Context, page *model.Page, filter string, value string) ([]model.BookRes, error) {
+func (s store) Get(ctx *krogo.Context, page *model.Page, filter, value string) ([]model.BookRes, error) {
 	books := make([]model.BookRes, 0)
 
 	query, err := s.getQueryBuilder(filter, value)
@@ -38,6 +38,7 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filter string, value st
 
 	for rows.Next() {
 		var id, genre, author, title, imageURI string
+
 		var book model.BookRes
 
 		err := rows.Scan(&id, &genre, &author, &title, &imageURI)
@@ -78,7 +79,7 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error 
 	return nil
 }
 
-func (s store) getQueryBuilder(filter string, value string) (string, error) {
+func (s store) getQueryBuilder(filter, value string) (string, error) {
 	query := `select id, genre, author, title, image_uri from book`
 
 	if filter != "" && value != "" {

@@ -11,6 +11,9 @@ type UserSvc interface {
 	// Exists checks if a user with given email is registered
 	Exists(ctx *krogo.Context, email string) (bool, error)
 
+	// IsAdmin checks if the user registered with given email is admin or not
+	IsAdmin(ctx *krogo.Context, email string) (bool, error)
+
 	// Create registers a new user
 	Create(ctx *krogo.Context, user *model.User) error
 }

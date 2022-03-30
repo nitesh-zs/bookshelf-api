@@ -21,6 +21,15 @@ func user1() *model.User {
 	}
 }
 
+func user2() *model.User {
+	return &model.User{
+		ID:    uuid.New(),
+		Email: "abc@abc.com",
+		Name:  "John",
+		Type:  "general",
+	}
+}
+
 func initializeTest(t *testing.T) (*mocks.MockUserStore, *krogo.Context, svc) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
@@ -50,7 +59,7 @@ func TestSvc_Exists(t *testing.T) {
 			true,
 			nil,
 			[]*gomock.Call{
-				mock.EXPECT().Exists(ctx, "nitesh.saxena@zopsmart.com").Return(true, nil),
+				mock.EXPECT().GetByEmail(ctx, "nitesh.saxena@zopsmart.com").Return(user1(), nil),
 			},
 		},
 		{
@@ -59,7 +68,7 @@ func TestSvc_Exists(t *testing.T) {
 			false,
 			errors.EntityNotFound{Entity: "user", ID: "abc@abc.com"},
 			[]*gomock.Call{
-				mock.EXPECT().Exists(ctx, "abc@abc.com").Return(false, errors.EntityNotFound{Entity: "user", ID: "abc@abc.com"}),
+				mock.EXPECT().GetByEmail(ctx, "abc@abc.com").Return(nil, errors.EntityNotFound{Entity: "user", ID: "abc@abc.com"}),
 			},
 		},
 		{
@@ -68,7 +77,7 @@ func TestSvc_Exists(t *testing.T) {
 			false,
 			errors.DB{},
 			[]*gomock.Call{
-				mock.EXPECT().Exists(ctx, "xyz@xyz.com").Return(false, errors.DB{}),
+				mock.EXPECT().GetByEmail(ctx, "xyz@xyz.com").Return(nil, errors.DB{}),
 			},
 		},
 	}
@@ -114,4 +123,52 @@ func TestSvc_Create(t *testing.T) {
 		err := s.Create(ctx, tc.user)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
+}
+
+func TestSvc_IsAdmin(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+
+	tests := []struct {
+		desc      string
+		email     string
+		res       bool
+		err       error
+		mockStore []*gomock.Call
+	}{
+		{
+			"Admin",
+			"nitesh.saxena@zopsmart.com",
+			true,
+			nil,
+			[]*gomock.Call{
+				mock.EXPECT().GetByEmail(ctx, "nitesh.saxena@zopsmart.com").Return(user1(), nil),
+			},
+		},
+		{
+			"Non Admin",
+			"abc@abc.com",
+			false,
+			nil,
+			[]*gomock.Call{
+				mock.EXPECT().GetByEmail(ctx, "abc@abc.com").Return(user2(), nil),
+			},
+		},
+		{
+			"Error",
+			"xyz@xyz.com",
+			false,
+			errors.DB{},
+			[]*gomock.Call{
+				mock.EXPECT().GetByEmail(ctx, "xyz@xyz.com").Return(nil, errors.DB{}),
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		res, err := s.IsAdmin(ctx, tc.email)
+
+		assert.Equal(t, tc.res, res, tc.desc)
+		assert.Equal(t, tc.err, err, tc.desc)
+	}
+
 }

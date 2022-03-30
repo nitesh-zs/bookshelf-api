@@ -16,7 +16,12 @@ func New(s store.UserStore) svc {
 }
 
 func (s svc) Exists(ctx *krogo.Context, email string) (bool, error) {
-	return s.store.Exists(ctx, email)
+	_, err := s.store.GetByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (s svc) Create(ctx *krogo.Context, user *model.User) error {
@@ -27,4 +32,17 @@ func (s svc) Create(ctx *krogo.Context, user *model.User) error {
 	}
 
 	return s.store.Create(ctx, user)
+}
+
+func (s svc) IsAdmin(ctx *krogo.Context, email string) (bool, error) {
+	user, err := s.store.GetByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+
+	if user.Type == "admin" {
+		return true, nil
+	}
+
+	return false, nil
 }

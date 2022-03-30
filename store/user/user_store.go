@@ -19,6 +19,7 @@ func New() store {
 
 func (s store) GetByEmail(ctx *krogo.Context, email string) (*model.User, error) {
 	var user model.User
+
 	var id string
 
 	row := ctx.DB().QueryRow(getUserByEmail, email)
