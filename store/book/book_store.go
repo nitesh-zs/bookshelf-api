@@ -79,6 +79,10 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return book, nil
 }
 
+func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
+	return nil, nil
+}
+
 func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
 	return uuid.Nil, nil
 }

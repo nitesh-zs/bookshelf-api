@@ -171,3 +171,38 @@ func TestStore_GetByID(t *testing.T) {
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }
+
+func TestStore_GetFilters(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+
+	rows := sqlmock.NewRows([]string{"year"}).AddRow(2000).AddRow(2005).AddRow(2011).AddRow(2021)
+
+	tests := []struct {
+		desc   string
+		filter string
+		res    []string
+		err    error
+		query  *sqlmock.ExpectedQuery
+	}{
+		{
+			"Success",
+			"year",
+			[]string{"2000", "2005", "2011", "2021"},
+			nil,
+			mock.ExpectQuery(getFilters).WithArgs("year").WillReturnRows(rows),
+		},
+		{
+			"DB Error",
+			"gibberish",
+			nil,
+			errors.DB{Err: errors.Error("DB Error")},
+			mock.ExpectQuery(getFilters).WithArgs("gibberish").WillReturnError(errors.Error("DB Error")),
+		},
+	}
+
+	for _, tc := range tests {
+		filters, err := s.GetFilters(ctx, tc.filter)
+		assert.Equal(t, tc.res, filters, tc.desc)
+		assert.Equal(t, tc.err, err, tc.desc)
+	}
+}
