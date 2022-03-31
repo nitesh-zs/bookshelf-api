@@ -17,3 +17,5 @@
 # Config files
 *.env
 .idea
+
+refresh_books_test.go
