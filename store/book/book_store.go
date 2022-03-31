@@ -82,7 +82,9 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	filters := []string{}
 
-	rows, err := ctx.DB().Query(getFilters, filter)
+	query := `select distinct ` + filter + ` from book;`
+
+	rows, err := ctx.DB().Query(query)
 	if err != nil {
 		return nil, errors.DB{Err: err}
 	}

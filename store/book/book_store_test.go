@@ -189,14 +189,14 @@ func TestStore_GetFilters(t *testing.T) {
 			"year",
 			[]string{"2000", "2005", "2011", "2021"},
 			nil,
-			mock.ExpectQuery(getFilters).WithArgs("year").WillReturnRows(rows),
+			mock.ExpectQuery(`select distinct year from book;`).WillReturnRows(rows),
 		},
 		{
 			"DB Error",
 			"gibberish",
 			nil,
 			errors.DB{Err: errors.Error("DB Error")},
-			mock.ExpectQuery(getFilters).WithArgs("gibberish").WillReturnError(errors.Error("DB Error")),
+			mock.ExpectQuery(`select distinct gibberish from book;`).WillReturnError(errors.Error("DB Error")),
 		},
 	}
 
