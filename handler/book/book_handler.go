@@ -72,3 +72,8 @@ func (h handler) GetByID(ctx *krogo.Context) (interface{}, error) {
 
 	return h.svc.GetByID(ctx, uid)
 }
+
+func (h handler) GetFilters(ctx *krogo.Context) (interface{}, error) {
+	filter := ctx.PathParam("param")
+	return h.svc.GetFilters(ctx, filter)
+}
