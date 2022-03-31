@@ -155,3 +155,42 @@ func TestSvc_GetByID(t *testing.T) {
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }
+
+func TestSvc_GetFilters(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+
+	filters := []string{"2000", "2005", "2011", "2021"}
+
+	tests := []struct {
+		desc      string
+		filter    string
+		res       []string
+		err       error
+		mockStore []*gomock.Call
+	}{
+		{
+			"Success",
+			"year",
+			filters,
+			nil,
+			[]*gomock.Call{
+				mock.EXPECT().GetFilters(ctx, "year").Return(filters, nil),
+			},
+		},
+		{
+			"DB Error",
+			"random",
+			nil,
+			errors.DB{},
+			[]*gomock.Call{
+				mock.EXPECT().GetFilters(ctx, "random").Return(nil, errors.DB{}),
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		f, err := s.GetFilters(ctx, tc.filter)
+		assert.Equal(t, tc.res, f, tc.desc)
+		assert.Equal(t, tc.err, err, tc.desc)
+	}
+}
