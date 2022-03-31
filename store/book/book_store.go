@@ -80,7 +80,34 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 }
 
 func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
-	return nil, nil
+	filters := []string{}
+
+	rows, err := ctx.DB().Query(getFilters, filter)
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	defer func() {
+		rows.Close()
+
+		err = rows.Err()
+		if err != nil {
+			ctx.Logger.Error(err)
+		}
+	}()
+
+	for rows.Next() {
+		var f string
+
+		err := rows.Scan(&f)
+		if err != nil {
+			return nil, errors.DB{Err: err}
+		}
+
+		filters = append(filters, f)
+	}
+
+	return filters, nil
 }
 
 func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
