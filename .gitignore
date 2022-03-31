@@ -19,3 +19,4 @@
 .idea
 
 refresh_books_test.go
+.DS_Store
