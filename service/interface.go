@@ -23,10 +23,10 @@ type BookSvc interface {
 	GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 
 	// Create creates a new book if the user has access to do so
-	Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
+	Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error)
 
 	// Update modifies a book if the user has access to do so
-	Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error)
+	Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error)
 
 	// Delete deletes a book if the user has access to do so
 	Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error
