@@ -14,8 +14,9 @@ import (
 	"testing"
 )
 
+var id = uuid.New()
 var book1 = &model.Book{
-	ID:        uuid.New(),
+	ID:        id,
 	Title:     "Abc",
 	Author:    "X",
 	Summary:   "Lorem Ipsum",
@@ -28,7 +29,7 @@ var book1 = &model.Book{
 }
 
 var bookRes1 = &model.BookRes{
-	ID:        uuid.New(),
+	ID:        id,
 	Title:     "Abc",
 	Author:    "X",
 	Summary:   "Lorem Ipsum",
@@ -91,12 +92,15 @@ func TestStore_Delete(t *testing.T) {
 func TestStore_Update(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
+	row := sqlmock.NewRows([]string{"title", "author", "summary", "genre", "year", "publisher", "image_uri"}).
+		AddRow(book1.Title, book1.Author, book1.Summary, book1.Genre, book1.Year, book1.Publisher, book1.ImageURI)
 	tests := []struct {
 		desc string
 		book *model.Book
 		resp *model.BookRes
 		err  error
 		exec *sqlmock.ExpectedExec
+		quer *sqlmock.ExpectedQuery
 	}{
 		{
 			"Success",
@@ -104,6 +108,7 @@ func TestStore_Update(t *testing.T) {
 			bookRes1,
 			nil,
 			mock.ExpectExec(getUpdateQuery(book1)).WillReturnResult(sqlmock.NewResult(0, 1)),
+			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
 		{
 			"DB error",
@@ -111,6 +116,7 @@ func TestStore_Update(t *testing.T) {
 			nil,
 			errors.DB{Err: errors.Error("DB Error")},
 			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.Error("DB Error")),
+			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
 		{
 			desc: "error",
@@ -119,7 +125,6 @@ func TestStore_Update(t *testing.T) {
 			err:  errors.Error("No object to update"),
 		},
 	}
-
 	for _, tc := range tests {
 		bookRes1, err := s.Update(ctx, tc.book)
 		assert.Equal(t, tc.err, err, tc.desc)
@@ -148,19 +153,19 @@ func TestStore_Create(t *testing.T) {
 			"DB error",
 			book1,
 			nil,
-			errors.Error("No object to update"),
-			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.Error("DB Error")),
+			errors.DB{Err: errors.Error("cannot create object")},
+			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.DB{Err: errors.Error("cannot create object")}),
 		},
 		{
 			desc: "error",
 			book: nil,
 			resp: nil,
-			err:  errors.Error("No object to update"),
+			err:  errors.Error("No object to create"),
 		},
 	}
 
 	for _, tc := range tests {
-		bookRes1, err := s.Update(ctx, tc.book)
+		bookRes1, err := s.Create(ctx, tc.book)
 		assert.Equal(t, tc.err, err, tc.desc)
 		assert.Equal(t, tc.resp, bookRes1, tc.desc)
 	}

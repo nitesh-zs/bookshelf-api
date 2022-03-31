@@ -1,6 +1,7 @@
 package book
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 
@@ -64,32 +65,59 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 }
 
 func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error) {
-	return nil, nil
+	book := &model.BookRes{}
+
+	row := ctx.DB().QueryRow(getByID, id)
+	err := row.Scan(&book.Title, &book.Author, &book.Summary, &book.Genre, &book.Year, &book.Publisher, &book.ImageURI)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.EntityNotFound{Entity: "book", ID: id.String()}
+	}
+
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	book.ID = id
+
+	return book, nil
 }
 
 func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	id := uuid.New()
-	_, err := ctx.DB().Exec(createBook, id.String(), book.Title, book.Author, book.Summary, book.Genre, book.Year, book.RegNum, book.Publisher, book.Language, book.ImageURI)
+	if book == nil {
+		return nil, errors.Error("No object to create")
+	}
+	_, err := ctx.DB().Exec(createBook, book.ID.String(), book.Title, book.Author, book.Summary, book.Genre, book.Year, book.RegNum, book.Publisher, book.Language, book.ImageURI)
 	if err != nil {
 		return nil, errors.DB{Err: errors.Error("cannot create object")}
 	}
-	resp, _ := s.GetByID(ctx, id)
-	return resp, nil
+	var bookRes1 = &model.BookRes{
+		ID:        book.ID,
+		Title:     book.Title,
+		Author:    book.Author,
+		Summary:   book.Summary,
+		Genre:     book.Genre,
+		Year:      book.Year,
+		Publisher: book.Publisher,
+		ImageURI:  book.ImageURI,
+	}
+	return bookRes1, nil
 }
 
 func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	//if book
-	//query := getUpdateQuery(book)
-	//_, err := ctx.DB().Exec(query)
-	//if err != nil {
-	//	return nil, errors.DB{Err: err}
-	//}
-	//response, err := s.GetByID(ctx, book.ID)
-	//if err != nil {
-	//	return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
-	//}
-	//return response, nil
-	return nil, nil
+	if book == nil {
+		return nil, errors.Error("No object to update")
+	}
+	query := getUpdateQuery(book)
+	_, err := ctx.DB().Exec(query)
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+	response, err := s.GetByID(ctx, book.ID)
+	if err != nil {
+		return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
+	}
+	return response, nil
 }
 
 func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
