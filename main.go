@@ -59,6 +59,7 @@ func main() {
 
 	k.GET("/register", authHandler.Register)
 	k.GET("/book", bookHandler.Get)
+	k.GET("/book/{id}", bookHandler.GetByID)
 
 	k.Start()
 }

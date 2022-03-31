@@ -49,8 +49,8 @@ func GetTokenData(ctx *krogo.Context) (*model.User, error) {
 }
 
 // Pagination filters page query parameter and returns page instance
-func Pagination(ctx *krogo.Context) (model.Page, error) {
-	page := model.Page{}
+func Pagination(ctx *krogo.Context) (*model.Page, error) {
+	page := &model.Page{}
 
 	size := ctx.Param("size")
 	if size == "" {
