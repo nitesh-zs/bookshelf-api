@@ -25,7 +25,7 @@ func (s svc) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error) {
 }
 
 func (s svc) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
-	return nil, nil
+	return s.store.GetFilters(ctx, filter)
 }
 
 func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
