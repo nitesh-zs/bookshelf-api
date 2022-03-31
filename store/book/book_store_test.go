@@ -55,6 +55,19 @@ func bookRes() []model.BookRes {
 	}
 }
 
+func bookRes2() *model.BookRes {
+	return &model.BookRes{
+		ID:        uuid.Nil,
+		Title:     "Meditations",
+		Author:    "Marcus Aurelius",
+		Summary:   "Lorem Ipsum",
+		Genre:     "Self Help",
+		Year:      2000,
+		Publisher: "Random",
+		ImageURI:  "image.com/woo-hoo",
+	}
+}
+
 func TestStore_Get(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
@@ -114,10 +127,10 @@ func TestStore_Get(t *testing.T) {
 func TestStore_GetByID(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	row := sqlmock.NewRows([]string{"id", "title", "author", "genre", "image_uri"}).
-		AddRow(uuid.Nil, "Meditations", "Marcus Aurelius", "Self Help", "image.com/woo-hoo")
+	row := sqlmock.NewRows([]string{"title", "author", "summary", "genre", "year", "publisher", "image_uri"}).
+		AddRow("Meditations", "Marcus Aurelius", "Lorem Ipsum", "Self Help", 2000, "Random", "image.com/woo-hoo")
 
-	book := &bookRes()[0]
+	book := bookRes2()
 
 	id1 := uuid.New()
 	id2 := uuid.New()

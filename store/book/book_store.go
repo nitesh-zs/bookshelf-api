@@ -1,6 +1,7 @@
 package book
 
 import (
+	"database/sql"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -60,7 +61,22 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 }
 
 func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error) {
-	return nil, nil
+	book := &model.BookRes{}
+
+	row := ctx.DB().QueryRow(getByID, id)
+	err := row.Scan(&book.Title, &book.Author, &book.Summary, &book.Genre, &book.Year, &book.Publisher, &book.ImageURI)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.EntityNotFound{Entity: "book", ID: id.String()}
+	}
+
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	book.ID = id
+
+	return book, nil
 }
 
 func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
