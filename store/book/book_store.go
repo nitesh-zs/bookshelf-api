@@ -1,6 +1,7 @@
 package book
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -66,16 +67,53 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return nil, nil
 }
 
-func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
+	id := uuid.New()
+	_, err := ctx.DB().Exec(createBook, id.String(), book.Title, book.Author, book.Summary, book.Genre, book.Year, book.RegNum, book.Publisher, book.Language, book.ImageURI)
+	if err != nil {
+		return nil, errors.DB{Err: errors.Error("cannot create object")}
+	}
+	resp, _ := s.GetByID(ctx, id)
+	return resp, nil
 }
 
-func (s store) Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
+	//if book
+	//query := getUpdateQuery(book)
+	//_, err := ctx.DB().Exec(query)
+	//if err != nil {
+	//	return nil, errors.DB{Err: err}
+	//}
+	//response, err := s.GetByID(ctx, book.ID)
+	//if err != nil {
+	//	return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
+	//}
+	//return response, nil
+	return nil, nil
 }
 
 func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
+	_, err := ctx.DB().Exec(`DELETE FROM book WHERE id=$1 `, id.String())
+	if err != nil {
+		return errors.DB{Err: err}
+	}
 	return nil
+}
+
+func getUpdateQuery(book *model.Book) string {
+	query := "update book set"
+	query += " id=" + book.ID.String()
+	query += ", title=" + book.Title
+	query += ", author=" + book.Author
+	query += ", summary=" + book.Summary
+	query += ", genre=" + book.Genre
+	query += ", publish_year=" + fmt.Sprint(book.Year)
+	query += ", regnum=" + book.RegNum
+	query += ", publisher=" + book.Publisher
+	query += ", language=" + book.Language
+	query += ", imageuri=" + book.ImageURI
+	query += " where id=?" + book.ID.String()
+	return query
 }
 
 func (s store) getQueryBuilder(f *model.Filters) string {

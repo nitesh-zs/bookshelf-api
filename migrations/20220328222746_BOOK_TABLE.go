@@ -17,8 +17,8 @@ func (k K20220328222746) Up(d *datastore.DataStore, logger log.Logger) error {
 				author varchar(255) not null,
 				summary text not null,
 				genre varchar(255) not null,
-				publish_year integer,
-				regNum varchar(50) not null unique,
+				year integer,
+				reg_num varchar(50) not null unique,
 				publisher varchar(255),
 				language varchar(50) not null,
 				image_uri varchar(255)
