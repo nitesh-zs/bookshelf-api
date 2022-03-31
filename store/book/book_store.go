@@ -36,11 +36,12 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 	}()
 
 	for rows.Next() {
-		var id, genre, author, title, imageURI string
+		var (
+			id   string
+			book model.BookRes
+		)
 
-		var book model.BookRes
-
-		err := rows.Scan(&id, &genre, &author, &title, &imageURI)
+		err := rows.Scan(&id, &book.Title, &book.Author, &book.Genre, &book.ImageURI)
 		if err != nil {
 			return nil, errors.DB{Err: err}
 		}
@@ -51,10 +52,6 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 		}
 
 		book.ID = uid
-		book.Genre = genre
-		book.Author = author
-		book.Title = title
-		book.ImageURI = imageURI
 
 		books = append(books, book)
 	}
@@ -79,7 +76,7 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
 }
 
 func (s store) getQueryBuilder(f *model.Filters) string {
-	query := `select id, genre, author, title, image_uri from book`
+	query := `select id, title, author, genre, image_uri from book`
 	whereClause := ""
 
 	if f.Author != "" {
@@ -96,7 +93,7 @@ func (s store) getQueryBuilder(f *model.Filters) string {
 
 	if f.Year != 0 {
 		year := strconv.Itoa(f.Year)
-		whereClause += ` year = '` + year + `' AND`
+		whereClause += ` year = ` + year + ` AND`
 	}
 
 	if len(whereClause) > 0 {
@@ -104,10 +101,10 @@ func (s store) getQueryBuilder(f *model.Filters) string {
 	}
 
 	if whereClause != "" {
-		query += " WHERE" + whereClause
+		query += " where" + whereClause
 	}
 
-	query += ` OFFSET $1 LIMIT $2`
+	query += ` offset $1 limit $2;`
 
 	return query
 }
