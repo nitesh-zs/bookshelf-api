@@ -1,6 +1,7 @@
 package book
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -106,6 +107,54 @@ func TestStore_Get(t *testing.T) {
 	for _, tc := range tests {
 		books, err := s.Get(ctx, page, tc.filters)
 		assert.Equal(t, tc.res, books, tc.desc)
+		assert.Equal(t, tc.err, err, tc.desc)
+	}
+}
+
+func TestStore_GetByID(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+
+	row := sqlmock.NewRows([]string{"id", "title", "author", "genre", "image_uri"}).
+		AddRow(uuid.Nil, "Meditations", "Marcus Aurelius", "Self Help", "image.com/woo-hoo")
+
+	book := &bookRes()[0]
+
+	id1 := uuid.New()
+	id2 := uuid.New()
+
+	tests := []struct {
+		desc  string
+		id    uuid.UUID
+		res   *model.BookRes
+		err   error
+		query *sqlmock.ExpectedQuery
+	}{
+		{
+			"Success",
+			uuid.Nil,
+			book,
+			nil,
+			mock.ExpectQuery(getByID).WithArgs(uuid.Nil).WillReturnRows(row),
+		},
+		{
+			"Not Exists",
+			id1,
+			nil,
+			errors.EntityNotFound{Entity: "book", ID: id1.String()},
+			mock.ExpectQuery(getByID).WithArgs(id1).WillReturnError(sql.ErrNoRows),
+		},
+		{
+			"DB Error",
+			id2,
+			nil,
+			errors.DB{Err: errors.Error("DB Error")},
+			mock.ExpectQuery(getByID).WithArgs(id2).WillReturnError(errors.Error("DB Error")),
+		},
+	}
+
+	for _, tc := range tests {
+		book, err := s.GetByID(ctx, tc.id)
+		assert.Equal(t, tc.res, book, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }
