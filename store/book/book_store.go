@@ -3,6 +3,7 @@ package book
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -111,10 +112,12 @@ func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 	query := getUpdateQuery(book)
 	_, err := ctx.DB().Exec(query)
 	if err != nil {
+		log.Println("store err 1: ", err)
 		return nil, errors.DB{Err: err}
 	}
 	response, err := s.GetByID(ctx, book.ID)
 	if err != nil {
+		log.Println("store err 2: ", err)
 		return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
 	}
 	return response, nil
@@ -129,18 +132,31 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
 }
 
 func getUpdateQuery(book *model.Book) string {
+	/*
+		update book set
+		id='18f8fb8a-689e-45f4-bcd8-4224f07998e2',
+		title='Rashmirathi',
+		author='Dinkar',
+		summary='About something i dont know',
+		genre='History',
+		year=1985,
+		reg_num='Mohitbabazindabad',
+		publisher='Rajkamal Prakashan',
+		language='Hindi',
+		image_uri=''
+		where id='18f8fb8a-689e-45f4-bcd8-4224f07998e2'
+	*/
 	query := "update book set"
-	query += " id=" + book.ID.String()
-	query += ", title=" + book.Title
-	query += ", author=" + book.Author
-	query += ", summary=" + book.Summary
-	query += ", genre=" + book.Genre
-	query += ", publish_year=" + fmt.Sprint(book.Year)
-	query += ", regnum=" + book.RegNum
-	query += ", publisher=" + book.Publisher
-	query += ", language=" + book.Language
-	query += ", imageuri=" + book.ImageURI
-	query += " where id=?" + book.ID.String()
+	query += " title=" + "'" + book.Title + "'"
+	query += ", author=" + "'" + book.Author + "'"
+	query += ", summary=" + "'" + book.Summary + "'"
+	query += ", genre=" + "'" + book.Genre + "'"
+	query += ", year=" + "'" + fmt.Sprint(book.Year) + "'"
+	query += ", reg_num=" + "'" + book.RegNum + "'"
+	query += ", publisher=" + "'" + book.Publisher + "'"
+	query += ", language=" + "'" + book.Language + "'"
+	query += ", image_uri=" + "'" + book.ImageURI + "'"
+	query += " where id=" + "'" + book.ID.String() + "'"
 	return query
 }
 

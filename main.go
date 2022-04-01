@@ -59,6 +59,8 @@ func main() {
 
 	k.GET("/register", authHandler.Register)
 	k.GET("/book", bookHandler.Get)
-
+	k.POST("/book", bookHandler.Create)
+	k.PUT("/book/{id}", bookHandler.Update)
+	k.DELETE("/book/{id}", bookHandler.Delete)
 	k.Start()
 }

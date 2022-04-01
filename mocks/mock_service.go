@@ -104,10 +104,10 @@ func (m *MockBookSvc) EXPECT() *MockBookSvcMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockBookSvc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (m *MockBookSvc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, book, user)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(*model.BookRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +163,10 @@ func (mr *MockBookSvcMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
 }
 
 // Update mocks base method.
-func (m *MockBookSvc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
+func (m *MockBookSvc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, book, user)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(*model.BookRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
