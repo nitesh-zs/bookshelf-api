@@ -1,45 +1,53 @@
 package book
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
+
 	"github.com/nitesh-zs/bookshelf-api/mocks"
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"testing"
 )
 
-var user1 = &model.User{
-	Type: "admin",
-}
-var user2 = &model.User{
-	Type: "non admin",
-}
-var id = uuid.New()
-var book1 = &model.Book{
-	ID:        id,
-	Title:     "Abc",
-	Author:    "X",
-	Summary:   "Lorem Ipsum",
-	Genre:     "Action",
-	Year:      2019,
-	RegNum:    "ISB8726W821",
-	Publisher: "saiudhiau",
-	Language:  "Hebrew",
-	ImageURI:  "jncj.ajcbiauadnc.com",
+func getUser() *model.User {
+	return &model.User{
+		Type: "admin",
+	}
 }
 
-var bookRes1 = &model.BookRes{
-	ID:        id,
-	Title:     "Abc",
-	Author:    "X",
-	Summary:   "Lorem Ipsum",
-	Genre:     "Action",
-	Year:      2019,
-	Publisher: "saiudhiau",
-	ImageURI:  "jncj.ajcbiauadnc.com",
+func getID() uuid.UUID {
+	return uuid.New()
+}
+
+func getNewBook(id uuid.UUID) *model.Book {
+	return &model.Book{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		RegNum:    "ISB8726W821",
+		Publisher: "Rajpal Publishing",
+		Language:  "Hindi",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
+}
+func getNewBookRes(id uuid.UUID) *model.BookRes {
+	return &model.BookRes{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		Publisher: "Rajpal Publishing",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
 }
 
 func initializeTest(t *testing.T) (*mocks.MockBookStore, *krogo.Context, svc) {
@@ -57,7 +65,7 @@ func initializeTest(t *testing.T) (*mocks.MockBookStore, *krogo.Context, svc) {
 func TestSvc_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	id1 := uuid.New()
+	id1 := getID()
 	tests := []struct {
 		desc      string
 		id        uuid.UUID
@@ -86,14 +94,8 @@ func TestSvc_Delete(t *testing.T) {
 			errors.Error("invalid uuid"),
 			mock.EXPECT().Delete(ctx, id1).Return(errors.Error("invalid uuid")),
 		},
-		//{
-		//	"Auth Error",
-		//	id1,
-		//	&model.User{Type: "non-admin"},
-		//	errors.Unauthorized{},
-		//	mock.EXPECT().Delete(ctx, id1).Return(errors.Unauthorized{}),
-		//},
 	}
+
 	for _, tc := range tests {
 		err := s.Delete(ctx, tc.id, tc.user)
 		assert.Equal(t, tc.err, err, tc.desc)
@@ -102,7 +104,7 @@ func TestSvc_Delete(t *testing.T) {
 
 func TestSvc_Create(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-
+	id := getID()
 	tests := []struct {
 		desc      string
 		book      *model.Book
@@ -113,31 +115,24 @@ func TestSvc_Create(t *testing.T) {
 	}{
 		{
 			"success",
-			book1,
-			user1,
-			bookRes1,
+			getNewBook(id),
+			getUser(),
+			getNewBookRes(id),
 			nil,
-			mock.EXPECT().Create(ctx, book1).Return(bookRes1, nil),
+			mock.EXPECT().Create(ctx, getNewBook(id)).Return(getNewBookRes(id), nil),
 		},
-		//{
-		//	desc: "unauthorised",
-		//	book: book1,
-		//	user: user2,
-		//	resp: nil,
-		//	err:  errors.Unauthorized{},
-		//},
 		{
 			"DB Error",
-			book1,
-			user1,
+			getNewBook(id),
+			getUser(),
 			nil,
 			errors.DB{},
-			mock.EXPECT().Create(ctx, book1).Return(nil, errors.DB{}),
+			mock.EXPECT().Create(ctx, getNewBook(id)).Return(nil, errors.DB{}),
 		},
 		{
 			desc: "no object",
 			book: nil,
-			user: user1,
+			user: getUser(),
 			resp: nil,
 			err:  errors.Error("No object to create"),
 		},
@@ -150,9 +145,10 @@ func TestSvc_Create(t *testing.T) {
 	}
 }
 
+// nolint
 func TestSvc_Update(t *testing.T) {
+	id := getID()
 	mock, ctx, s := initializeTest(t)
-
 	tests := []struct {
 		desc      string
 		book      *model.Book
@@ -162,32 +158,25 @@ func TestSvc_Update(t *testing.T) {
 		mockStore *gomock.Call
 	}{
 		{
-			"success",
-			book1,
-			user1,
-			bookRes1,
-			nil,
-			mock.EXPECT().Update(ctx, book1).Return(bookRes1, nil),
-		},
-		//{
-		//	desc: "unauthorised",
-		//	book: book1,
-		//	user2,
-		//	nil,
-		//	errors.Unauthorized{},
-		//},
-		{
 			"error",
-			book1,
-			user1,
+			getNewBook(id),
+			getUser(),
 			nil,
 			errors.DB{},
-			mock.EXPECT().Update(ctx, book1).Return(nil, errors.DB{}),
+			mock.EXPECT().Update(ctx, getNewBook(id)).Return(nil, errors.DB{}),
+		},
+		{
+			"success",
+			getNewBook(id),
+			getUser(),
+			getNewBookRes(id),
+			nil,
+			mock.EXPECT().Update(ctx, getNewBook(id)).Return(getNewBookRes(id), nil),
 		},
 		{
 			desc: "no object",
 			book: nil,
-			user: user1,
+			user: getUser(),
 			resp: nil,
 			err:  errors.Error("No object to update"),
 		},

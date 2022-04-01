@@ -1,6 +1,8 @@
 package book
 
 import (
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/bmizerany/assert"
 	"github.com/google/uuid"
@@ -10,33 +12,40 @@ import (
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/krogertechnology/krogo/pkg/krogo/config"
 	"github.com/krogertechnology/krogo/pkg/log"
+
 	"github.com/nitesh-zs/bookshelf-api/model"
-	"testing"
 )
 
-var id = uuid.New()
-var book1 = &model.Book{
-	ID:        id,
-	Title:     "Abc",
-	Author:    "X",
-	Summary:   "Lorem Ipsum",
-	Genre:     "Action",
-	Year:      2019,
-	RegNum:    "ISB8726W821",
-	Publisher: "saiudhiau",
-	Language:  "Hebrew",
-	ImageURI:  "jncj.ajcbiauadnc.com",
+func getID() uuid.UUID {
+	return uuid.New()
 }
 
-var bookRes1 = &model.BookRes{
-	ID:        id,
-	Title:     "Abc",
-	Author:    "X",
-	Summary:   "Lorem Ipsum",
-	Genre:     "Action",
-	Year:      2019,
-	Publisher: "saiudhiau",
-	ImageURI:  "jncj.ajcbiauadnc.com",
+func getNewBook(id uuid.UUID) *model.Book {
+	return &model.Book{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		RegNum:    "ISB8726W821",
+		Publisher: "Rajpal Publishing",
+		Language:  "Hindi",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
+}
+
+func getNewBookRes(id uuid.UUID) *model.BookRes {
+	return &model.BookRes{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		Publisher: "Rajpal Publishing",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
 }
 
 func initializeTest(t *testing.T) (sqlmock.Sqlmock, *krogo.Context, store) {
@@ -62,7 +71,7 @@ func initializeTest(t *testing.T) (sqlmock.Sqlmock, *krogo.Context, store) {
 func TestStore_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	id1 := uuid.New()
+	id1 := getID()
 	tests := []struct {
 		desc string
 		id   uuid.UUID
@@ -91,6 +100,9 @@ func TestStore_Delete(t *testing.T) {
 
 func TestStore_Update(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
+	id := getID()
+	book1 := getNewBook(id)
+	bookRes1 := getNewBookRes(id)
 
 	row := sqlmock.NewRows([]string{"title", "author", "summary", "genre", "year", "publisher", "image_uri"}).
 		AddRow(book1.Title, book1.Author, book1.Summary, book1.Genre, book1.Year, book1.Publisher, book1.ImageURI)
@@ -125,16 +137,19 @@ func TestStore_Update(t *testing.T) {
 			err:  errors.Error("No object to update"),
 		},
 	}
+
 	for _, tc := range tests {
-		bookRes1, err := s.Update(ctx, tc.book)
+		bookRes, err := s.Update(ctx, tc.book)
 		assert.Equal(t, tc.err, err, tc.desc)
-		assert.Equal(t, tc.resp, bookRes1, tc.desc)
+		assert.Equal(t, tc.resp, bookRes, tc.desc)
 	}
 }
 
 func TestStore_Create(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-
+	id := getID()
+	book1 := getNewBook(id)
+	bookRes1 := getNewBookRes(id)
 	tests := []struct {
 		desc string
 		book *model.Book
@@ -147,7 +162,11 @@ func TestStore_Create(t *testing.T) {
 			book1,
 			bookRes1,
 			nil,
-			mock.ExpectExec(createBook).WithArgs(book1.ID.String(), book1.Title, book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum, book1.Publisher, book1.Language, book1.ImageURI).WillReturnResult(sqlmock.NewResult(0, 1)),
+			mock.ExpectExec(createBook).WithArgs(book1.ID.String(), book1.Title,
+				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
+				book1.Publisher, book1.Language, book1.ImageURI).WillReturnResult(
+				sqlmock.NewResult(0, 1),
+			),
 		},
 		{
 			"DB error",

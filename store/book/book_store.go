@@ -88,10 +88,15 @@ func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 	if book == nil {
 		return nil, errors.Error("No object to create")
 	}
-	_, err := ctx.DB().Exec(createBook, book.ID.String(), book.Title, book.Author, book.Summary, book.Genre, book.Year, book.RegNum, book.Publisher, book.Language, book.ImageURI)
+
+	_, err := ctx.DB().Exec(createBook, book.ID.String(), book.Title, book.Author,
+		book.Summary, book.Genre, book.Year, book.RegNum,
+		book.Publisher, book.Language, book.ImageURI)
+
 	if err != nil {
 		return nil, errors.DB{Err: errors.Error("cannot create object")}
 	}
+
 	var bookRes1 = &model.BookRes{
 		ID:        book.ID,
 		Title:     book.Title,
@@ -102,6 +107,7 @@ func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 		Publisher: book.Publisher,
 		ImageURI:  book.ImageURI,
 	}
+
 	return bookRes1, nil
 }
 
@@ -109,17 +115,22 @@ func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 	if book == nil {
 		return nil, errors.Error("No object to update")
 	}
+
 	query := getUpdateQuery(book)
 	_, err := ctx.DB().Exec(query)
+
 	if err != nil {
 		log.Println("store err 1: ", err)
 		return nil, errors.DB{Err: err}
 	}
+
 	response, err := s.GetByID(ctx, book.ID)
+
 	if err != nil {
 		log.Println("store err 2: ", err)
 		return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
 	}
+
 	return response, nil
 }
 
@@ -128,6 +139,7 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
 	if err != nil {
 		return errors.DB{Err: err}
 	}
+
 	return nil
 }
 
@@ -157,6 +169,7 @@ func getUpdateQuery(book *model.Book) string {
 	query += ", language=" + "'" + book.Language + "'"
 	query += ", image_uri=" + "'" + book.ImageURI + "'"
 	query += " where id=" + "'" + book.ID.String() + "'"
+
 	return query
 }
 
