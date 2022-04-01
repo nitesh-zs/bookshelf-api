@@ -112,12 +112,12 @@ func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	return filters, nil
 }
 
-func (s store) Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
+	return nil, nil
 }
 
-func (s store) Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
+	return nil, nil
 }
 
 func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {

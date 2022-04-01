@@ -28,12 +28,12 @@ func (s svc) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	return s.store.GetFilters(ctx, filter)
 }
 
-func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.Book, error) {
+	return nil, nil
 }
 
-func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (uuid.UUID, error) {
-	return uuid.Nil, nil
+func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.Book, error) {
+	return nil, nil
 }
 
 func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {

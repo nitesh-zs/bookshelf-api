@@ -21,7 +21,7 @@ type BookStore interface {
 	Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error)
 	GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	GetFilters(ctx *krogo.Context, filter string) ([]string, error)
-	Create(ctx *krogo.Context, book *model.Book) (uuid.UUID, error)
-	Update(ctx *krogo.Context, book *model.Book) (uuid.UUID, error)
+	Create(ctx *krogo.Context, book *model.Book) (*model.Book, error)
+	Update(ctx *krogo.Context, book *model.Book) (*model.Book, error)
 	Delete(ctx *krogo.Context, id uuid.UUID) error
 }
