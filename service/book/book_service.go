@@ -28,7 +28,7 @@ func (s svc) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error) {
 
 func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
 	if book == nil {
-		return nil, errors.Error("No object to create")
+		return nil, errors.InvalidParam{Param: []string{"invalid body request"}}
 	}
 
 	resp, err := s.store.Create(ctx, book)
@@ -42,7 +42,7 @@ func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 
 func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
 	if book == nil {
-		return nil, errors.Error("No object to update")
+		return nil, errors.InvalidParam{Param: []string{"invalid body request"}}
 	}
 
 	resp, err := s.store.Update(ctx, book)
@@ -56,7 +56,7 @@ func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 
 func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
 	if id == uuid.Nil {
-		return errors.Error("invalid uuid")
+		return errors.InvalidParam{Param: []string{"id"}}
 	}
 
 	err := s.store.Delete(ctx, id)

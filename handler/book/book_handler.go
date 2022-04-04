@@ -26,8 +26,8 @@ func (h handler) Get(ctx *krogo.Context) (interface{}, error) {
 
 func (h handler) Delete(ctx *krogo.Context) (interface{}, error) {
 	id := ctx.PathParam("id")
-
 	uid, err := uuid.Parse(id)
+
 	if err != nil {
 		return nil, errors.InvalidParam{Param: []string{"id"}}
 	}
@@ -45,6 +45,7 @@ func (h handler) Create(ctx *krogo.Context) (interface{}, error) {
 	var book model.Book
 	if err := ctx.Bind(&book); err != nil {
 		fmt.Println("We could not bind the data")
+		return nil, errors.InvalidParam{Param: []string{"body"}}
 	}
 
 	book.ID = uuid.New()
@@ -66,8 +67,10 @@ func (h handler) Update(ctx *krogo.Context) (interface{}, error) {
 	}
 
 	var book model.Book
+
 	if err2 := ctx.Bind(&book); err2 != nil {
 		fmt.Println("We could not bind the data")
+		return nil, errors.InvalidParam{Param: []string{"body"}}
 	}
 
 	book.ID = uid

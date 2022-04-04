@@ -85,10 +85,6 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 }
 
 func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	if book == nil {
-		return nil, errors.Error("No object to create")
-	}
-
 	_, err := ctx.DB().Exec(createBook, book.ID.String(), book.Title, book.Author,
 		book.Summary, book.Genre, book.Year, book.RegNum,
 		book.Publisher, book.Language, book.ImageURI)
@@ -112,10 +108,6 @@ func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 }
 
 func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	if book == nil {
-		return nil, errors.Error("No object to update")
-	}
-
 	query := getUpdateQuery(book)
 	_, err := ctx.DB().Exec(query)
 
