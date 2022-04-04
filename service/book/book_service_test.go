@@ -91,8 +91,8 @@ func TestSvc_Delete(t *testing.T) {
 			"DB Error",
 			uuid.Nil,
 			&model.User{Type: "admin"},
-			errors.Error("invalid uuid"),
-			mock.EXPECT().Delete(ctx, id1).Return(errors.Error("invalid uuid")),
+			errors.InvalidParam{Param: []string{"id"}},
+			mock.EXPECT().Delete(ctx, id1).Return(errors.InvalidParam{Param: []string{"id"}}),
 		},
 	}
 
@@ -134,7 +134,7 @@ func TestSvc_Create(t *testing.T) {
 			book: nil,
 			user: getUser(),
 			resp: nil,
-			err:  errors.Error("No object to create"),
+			err:  errors.InvalidParam{Param: []string{"invalid body request"}},
 		},
 	}
 
@@ -178,7 +178,7 @@ func TestSvc_Update(t *testing.T) {
 			book: nil,
 			user: getUser(),
 			resp: nil,
-			err:  errors.Error("No object to update"),
+			err:  errors.InvalidParam{Param: []string{"invalid body request"}},
 		},
 	}
 
