@@ -89,10 +89,11 @@ func (m *MockBookStore) EXPECT() *MockBookStoreMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockBookStore) Create(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
+
+func (m *MockBookStore) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, book)
-	ret0, _ := ret[0].(*model.Book)
+	ret0, _ := ret[0].(*model.BookRes)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -163,10 +164,12 @@ func (mr *MockBookStoreMockRecorder) GetFilters(ctx, filter interface{}) *gomock
 }
 
 // Update mocks base method.
-func (m *MockBookStore) Update(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
+
+func (m *MockBookStore) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, book)
-	ret0, _ := ret[0].(*model.Book)
+	ret0, _ := ret[0].(*model.BookRes)
+
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

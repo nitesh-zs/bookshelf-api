@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
+	
 	"github.com/nitesh-zs/bookshelf-api/model"
 	"github.com/nitesh-zs/bookshelf-api/service"
 	"github.com/nitesh-zs/bookshelf-api/util"
@@ -76,4 +77,62 @@ func (h handler) GetByID(ctx *krogo.Context) (interface{}, error) {
 func (h handler) GetFilters(ctx *krogo.Context) (interface{}, error) {
 	filter := ctx.PathParam("param")
 	return h.svc.GetFilters(ctx, filter)
+}
+
+func (h handler) Delete(ctx *krogo.Context) (interface{}, error) {
+	id := ctx.PathParam("id")
+	uid, err := uuid.Parse(id)
+
+	if err != nil {
+		return nil, errors.InvalidParam{Param: []string{"id"}}
+	}
+
+	err = h.svc.Delete(ctx, uid, &model.User{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (h handler) Create(ctx *krogo.Context) (interface{}, error) {
+	var book model.Book
+	if err := ctx.Bind(&book); err != nil {
+		return nil, errors.InvalidParam{Param: []string{"body"}}
+	}
+
+	book.ID = uuid.New()
+	resp, err := h.svc.Create(ctx, &book, &model.User{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (h handler) Update(ctx *krogo.Context) (interface{}, error) {
+	id := ctx.PathParam("id")
+	uid, err := uuid.Parse(id)
+
+	if err != nil {
+		return nil, errors.InvalidParam{Param: []string{"id"}}
+	}
+
+	var book model.Book
+
+	if err2 := ctx.Bind(&book); err2 != nil {
+		ctx.Logger.Error("We could not bind the data")
+		return nil, errors.InvalidParam{Param: []string{"body"}}
+	}
+
+	book.ID = uid
+	resp, err := h.svc.Update(ctx, &book, &model.User{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
