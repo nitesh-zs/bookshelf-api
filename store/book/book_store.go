@@ -2,8 +2,6 @@ package book
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -39,11 +37,12 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 	}()
 
 	for rows.Next() {
-		var id, genre, author, title, imageURI string
+		var (
+			id   string
+			book model.BookRes
+		)
 
-		var book model.BookRes
-
-		err := rows.Scan(&id, &genre, &author, &title, &imageURI)
+		err := rows.Scan(&id, &book.Title, &book.Author, &book.Genre, &book.ImageURI)
 		if err != nil {
 			return nil, errors.DB{Err: err}
 		}
@@ -54,10 +53,6 @@ func (s store) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters)
 		}
 
 		book.ID = uid
-		book.Genre = genre
-		book.Author = author
-		book.Title = title
-		book.ImageURI = imageURI
 
 		books = append(books, book)
 	}
@@ -112,18 +107,49 @@ func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 	_, err := ctx.DB().Exec(query)
 
 	if err != nil {
-		log.Println("store err 1: ", err)
 		return nil, errors.DB{Err: err}
 	}
 
 	response, err := s.GetByID(ctx, book.ID)
 
 	if err != nil {
-		log.Println("store err 2: ", err)
 		return nil, errors.DB{Err: errors.Error("updated, but can't fetch")}
 	}
 
 	return response, nil
+}
+
+func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
+	filters := []string{}
+
+	query := `select distinct ` + filter + ` from book;`
+
+	rows, err := ctx.DB().Query(query)
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	defer func() {
+		rows.Close()
+
+		err = rows.Err()
+		if err != nil {
+			ctx.Logger.Error(err)
+		}
+	}()
+
+	for rows.Next() {
+		var f string
+
+		err := rows.Scan(&f)
+		if err != nil {
+			return nil, errors.DB{Err: err}
+		}
+
+		filters = append(filters, f)
+	}
+
+	return filters, nil
 }
 
 func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
@@ -155,7 +181,7 @@ func getUpdateQuery(book *model.Book) string {
 	query += ", author=" + "'" + book.Author + "'"
 	query += ", summary=" + "'" + book.Summary + "'"
 	query += ", genre=" + "'" + book.Genre + "'"
-	query += ", year=" + "'" + fmt.Sprint(book.Year) + "'"
+	query += ", year=" + "'" + strconv.Itoa(book.Year) + "'"
 	query += ", reg_num=" + "'" + book.RegNum + "'"
 	query += ", publisher=" + "'" + book.Publisher + "'"
 	query += ", language=" + "'" + book.Language + "'"
@@ -166,7 +192,7 @@ func getUpdateQuery(book *model.Book) string {
 }
 
 func (s store) getQueryBuilder(f *model.Filters) string {
-	query := `select id, genre, author, title, image_uri from book`
+	query := `select id, title, author, genre, image_uri from book`
 	whereClause := ""
 
 	if f.Author != "" {
@@ -183,7 +209,7 @@ func (s store) getQueryBuilder(f *model.Filters) string {
 
 	if f.Year != 0 {
 		year := strconv.Itoa(f.Year)
-		whereClause += ` year = '` + year + `' AND`
+		whereClause += ` year = ` + year + ` AND`
 	}
 
 	if len(whereClause) > 0 {
@@ -191,10 +217,10 @@ func (s store) getQueryBuilder(f *model.Filters) string {
 	}
 
 	if whereClause != "" {
-		query += " WHERE" + whereClause
+		query += " where" + whereClause
 	}
 
-	query += ` OFFSET $1 LIMIT $2`
+	query += ` offset $1 limit $2;`
 
 	return query
 }

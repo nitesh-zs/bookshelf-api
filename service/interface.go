@@ -22,6 +22,8 @@ type BookSvc interface {
 	Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error)
 	GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 
+	GetFilters(ctx *krogo.Context, filter string) ([]string, error)
+
 	// Create creates a new book if the user has access to do so
 	Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error)
 

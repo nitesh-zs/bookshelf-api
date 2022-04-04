@@ -162,7 +162,23 @@ func (mr *MockBookSvcMockRecorder) GetByID(ctx, id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockBookSvc)(nil).GetByID), ctx, id)
 }
 
+// GetFilters mocks base method.
+func (m *MockBookSvc) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFilters", ctx, filter)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilters indicates an expected call of GetFilters.
+func (mr *MockBookSvcMockRecorder) GetFilters(ctx, filter interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilters", reflect.TypeOf((*MockBookSvc)(nil).GetFilters), ctx, filter)
+}
+
 // Update mocks base method.
+
 func (m *MockBookSvc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", ctx, book, user)

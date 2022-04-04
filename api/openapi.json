@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "description": "This is library server",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "title": "BookStore",
     "termsOfService": "http://xyz.com",
     "contact": {
@@ -19,14 +19,6 @@
         "description": "Find out more",
         "url": "http://xyz.com"
       }
-    },
-    {
-      "name": "review",
-      "description": "Everything about a review",
-      "externalDocs": {
-        "description": "Find out more",
-        "url": "http://xyz.com"
-      }
     }
   ],
   "schemes": [
@@ -39,7 +31,7 @@
         "tags": [
           "book"
         ],
-        "summary": "fetch booklist by given filter",
+        "summary": "Fetch booklist by given filter",
         "description": "default: all book, \nfilters: author, language, year, category(genre), \noffset: page, count",
         "consumes": [
           "application/json"
@@ -49,45 +41,60 @@
         ],
         "parameters": [
           {
+            "name": "Authorization",
             "in": "header",
-            "name": "bearer_token",
+            "description": "Bearer token",
             "required": true,
-            "type": "string",
-            "description": "token for authentication"
+            "type": "string"
           },
           {
+            "name": "author",
             "in": "query",
-            "name": "filter",
-            "type": "string",
-            "description": "type of filter to be applied. \n if nil, no filter will be applied by default."
+            "description": "filter for author",
+            "required": false,
+            "type": "string"
           },
           {
+            "name": "language",
             "in": "query",
-            "name": "keyword",
-            "type": "string",
-            "description": "value against which the list will be filtered."
+            "description": "filter for book language",
+            "required": false,
+            "type": "string"
           },
           {
+            "name": "year",
             "in": "query",
+            "description": "filter for year of publication",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "name": "genre",
+            "in": "query",
+            "description": "filter for book genre",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "page",
-            "type": "integer",
-            "description": "page number"
+            "in": "query",
+            "description": "page number",
+            "required": false,
+            "type": "integer"
           },
           {
+            "name": "size",
             "in": "query",
-            "name": "count",
-            "type": "integer",
-            "description": "count number"
+            "description": "count number",
+            "required": false,
+            "type": "integer"
           }
         ],
         "responses": {
           "200": {
             "description": "fetch successfully",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ShortBook"
-              }
+              "$ref": "#/definitions/inline_response_200"
             }
           },
           "400": {
@@ -98,6 +105,61 @@
           },
           "403": {
             "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "book"
+        ],
+        "summary": "Add a new book to the store",
+        "description": "",
+        "operationId": "addBook",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Book object that needs to be added to the store",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddbookReq"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Bearer token",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "added successfully",
+            "schema": {
+              "$ref": "#/definitions/AddBookResp"
+            }
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -126,8 +188,9 @@
             "format": "int64"
           },
           {
-            "name": "bearer_token",
+            "name": "Authorization",
             "in": "header",
+            "description": "Bearer token",
             "required": true,
             "type": "string"
           }
@@ -136,7 +199,7 @@
           "200": {
             "description": "successful operation",
             "schema": {
-              "$ref": "#/definitions/Book"
+              "$ref": "#/definitions/BookResp"
             }
           },
           "400": {
@@ -144,6 +207,9 @@
           },
           "401": {
             "description": "Unauthorised"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },
@@ -172,8 +238,9 @@
             "format": "int64"
           },
           {
-            "name": "bearer_token",
+            "name": "Authorization",
             "in": "header",
+            "description": "Bearer token",
             "required": true,
             "type": "string"
           },
@@ -183,15 +250,15 @@
             "description": "Book object that needs to be added to the store",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/Book"
+              "$ref": "#/definitions/UpdateBookReq"
             }
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "updated successfully",
             "schema": {
-              "$ref": "#/definitions/Book"
+              "$ref": "#/definitions/UpdateBookResp"
             }
           },
           "400": {
@@ -205,6 +272,9 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },
@@ -212,7 +282,7 @@
         "tags": [
           "book"
         ],
-        "summary": "delete a book detail",
+        "summary": "Delete a book detail",
         "description": "",
         "operationId": "deleteBook",
         "consumes": [
@@ -233,15 +303,16 @@
             "format": "int64"
           },
           {
-            "name": "bearer_token",
+            "name": "Authorization",
             "in": "header",
+            "description": "Bearer token",
             "required": true,
             "type": "string"
           }
         ],
         "responses": {
-          "200": {
-            "description": "deleted successfully"
+          "204": {
+            "description": "Success"
           },
           "401": {
             "description": "Unauthorised"
@@ -251,31 +322,114 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/list/{param}": {
+      "get": {
+        "tags": [
+          "list"
+        ],
+        "summary": "filter list",
+        "description": "\nfilters: author, language, year, category(genre)",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Bearer token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "param",
+            "in": "path",
+            "description": "filter name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "fetch successfully",
+            "schema": {
+              "$ref": "#/definitions/ListResp"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorised"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     }
   },
-  "securityDefinitions": {
-    "petstore_auth": {
-      "type": "oauth2",
-      "authorizationUrl": "http://petstore.swagger.io/oauth/dialog",
-      "flow": "implicit",
-      "scopes": {
-        "write:pets": "modify pets in your account",
-        "read:pets": "read your pets"
-      }
-    }
-  },
   "definitions": {
-    "ShortBook": {
+    "ListResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "BooklistResp": {
       "type": "object",
       "required": [
-        "bookid",
-        "title",
         "author",
         "genre",
-        "image"
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "imageUri": {
+          "type": "string"
+        }
+      }
+    },
+    "AddbookReq": {
+      "type": "object",
+      "required": [
+        "author",
+        "genre",
+        "language",
+        "publisher",
+        "regNum",
+        "summary",
+        "title",
+        "year"
       ],
       "properties": {
         "title": {
@@ -284,32 +438,42 @@
         "author": {
           "type": "string"
         },
-        "bookid": {
+        "summary": {
           "type": "string"
         },
         "genre": {
           "type": "string"
         },
-        "image": {
+        "year": {
+          "type": "integer",
+          "format": "date"
+        },
+        "regNum": {
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "imageUri": {
           "type": "string"
         }
       }
     },
-    "Book": {
+    "AddBookResp": {
       "type": "object",
       "required": [
-        "bookid",
-        "title",
         "author",
-        "summary",
         "genre",
-        "publish_date",
-        "regd_number",
         "publisher",
-        "language"
+        "summary",
+        "title",
+        "year"
       ],
       "properties": {
-        "bookid": {
+        "id": {
           "type": "integer"
         },
         "title": {
@@ -324,11 +488,84 @@
         "genre": {
           "type": "string"
         },
-        "publish_date": {
-          "type": "string",
-          "format": "date"
+        "year": {
+          "type": "integer"
         },
-        "regd_number": {
+        "publisher": {
+          "type": "string"
+        },
+        "imageUri": {
+          "type": "string"
+        }
+      }
+    },
+    "UpdateBookReq": {
+      "type": "object",
+      "required": [
+        "author",
+        "genre",
+        "publisher",
+        "summary",
+        "title",
+        "year"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "imageUri": {
+          "type": "string"
+        }
+      }
+    },
+    "UpdateBookResp": {
+      "type": "object",
+      "required": [
+        "author",
+        "genre",
+        "publisher",
+        "summary",
+        "title",
+        "year"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer"
+        },
+        "regNum": {
           "type": "string"
         },
         "publisher": {
@@ -337,8 +574,56 @@
         "language": {
           "type": "string"
         },
-        "url": {
+        "imageUri": {
           "type": "string"
+        }
+      }
+    },
+    "BookResp": {
+      "type": "object",
+      "required": [
+        "author",
+        "genre",
+        "publisher",
+        "summary",
+        "title",
+        "year"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "title": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "year": {
+          "type": "integer"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "imageUri": {
+          "type": "string"
+        }
+      }
+    },
+    "inline_response_200": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BooklistResp"
+          }
         }
       }
     }

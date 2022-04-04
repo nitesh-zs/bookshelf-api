@@ -18,12 +18,15 @@ func New(s store.BookStore) svc {
 }
 
 func (s svc) Get(ctx *krogo.Context, page *model.Page, filters *model.Filters) ([]model.BookRes, error) {
-	books, err := s.store.Get(ctx, page, filters)
-	return books, err
+	return s.store.Get(ctx, page, filters)
 }
 
 func (s svc) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error) {
-	return nil, nil
+	return s.store.GetByID(ctx, id)
+}
+
+func (s svc) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
+	return s.store.GetFilters(ctx, filter)
 }
 
 func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {

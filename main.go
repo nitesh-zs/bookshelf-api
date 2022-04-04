@@ -1,8 +1,11 @@
 package main
 
 import (
+	"testing"
+
 	"github.com/krogertechnology/krogo/cmd/krogo/migration"
 	dbmigration "github.com/krogertechnology/krogo/cmd/krogo/migration/dbMigration"
+	"github.com/krogertechnology/krogo/pkg/datastore"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/handler/auth"
 	bHandler "github.com/nitesh-zs/bookshelf-api/handler/book"
@@ -27,6 +30,9 @@ func main() {
 	if err != nil {
 		return
 	}
+
+	seeder := datastore.NewSeeder(&k.DataStore, "./configs")
+	seeder.RefreshTables(&testing.T{}, "book")
 
 	//nolint:gocritic //will remove the code later upon finalization of client side auth flow
 	// conf := &oauth2.Config{
@@ -62,5 +68,8 @@ func main() {
 	k.POST("/book", bookHandler.Create)
 	k.PUT("/book/{id}", bookHandler.Update)
 	k.DELETE("/book/{id}", bookHandler.Delete)
+	k.GET("/book/{id}", bookHandler.GetByID)
+	k.GET("/list/{param}", bookHandler.GetFilters)
+
 	k.Start()
 }
