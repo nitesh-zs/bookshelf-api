@@ -130,12 +130,6 @@ func TestStore_Update(t *testing.T) {
 			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.Error("DB Error")),
 			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
-		{
-			desc: "error",
-			book: nil,
-			resp: nil,
-			err:  errors.Error("No object to update"),
-		},
 	}
 
 	for _, tc := range tests {
@@ -174,12 +168,6 @@ func TestStore_Create(t *testing.T) {
 			nil,
 			errors.DB{Err: errors.Error("cannot create object")},
 			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.DB{Err: errors.Error("cannot create object")}),
-		},
-		{
-			desc: "error",
-			book: nil,
-			resp: nil,
-			err:  errors.Error("No object to create"),
 		},
 	}
 
