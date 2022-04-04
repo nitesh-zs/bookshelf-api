@@ -49,7 +49,6 @@ func getNewBookRes(id uuid.UUID) *model.BookRes {
 	}
 }
 
-
 func initializeTest(t *testing.T) (sqlmock.Sqlmock, *krogo.Context, store) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 
@@ -123,7 +122,7 @@ func TestStore_Delete(t *testing.T) {
 			id1,
 			errors.DB{Err: errors.Error("DB Error")},
 			mock.ExpectExec(`DELETE FROM book WHERE id=$1`).WillReturnError(errors.Error("DB Error")),
-			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -131,7 +130,6 @@ func TestStore_Delete(t *testing.T) {
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }
-
 
 func TestStore_Get(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
@@ -222,7 +220,7 @@ func TestStore_Update(t *testing.T) {
 			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
 	}
-	
+
 	for _, tc := range tests {
 		bookRes, err := s.Update(ctx, tc.book)
 		assert.Equal(t, tc.err, err, tc.desc)
@@ -274,7 +272,7 @@ func TestStore_GetByID(t *testing.T) {
 	for _, tc := range tests {
 		book, err := s.GetByID(ctx, tc.id)
 		assert.Equal(t, tc.err, err, tc.desc)
-		assert.Equal(t, tc.resp, bookRes, tc.desc)
+		assert.Equal(t, tc.res, book, tc.desc)
 	}
 }
 
@@ -309,10 +307,10 @@ func TestStore_Create(t *testing.T) {
 			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.DB{Err: errors.Error("cannot create object")}),
 		},
 	}
-	
+
 	for _, tc := range tests {
-		bookRes1, err := s.Create(ctx, tc.book)
-		assert.Equal(t, tc.res, book, tc.desc)
+		book, err := s.Create(ctx, tc.book)
+		assert.Equal(t, tc.resp, book, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }

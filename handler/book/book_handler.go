@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
-	
+
 	"github.com/nitesh-zs/bookshelf-api/model"
 	"github.com/nitesh-zs/bookshelf-api/service"
 	"github.com/nitesh-zs/bookshelf-api/util"

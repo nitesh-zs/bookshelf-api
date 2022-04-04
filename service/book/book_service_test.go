@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
-	
+
 	"github.com/nitesh-zs/bookshelf-api/mocks"
 	"github.com/nitesh-zs/bookshelf-api/model"
 )
@@ -50,7 +50,6 @@ func getNewBookRes(id uuid.UUID) *model.BookRes {
 		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
 	}
 }
-
 
 func initializeTest(t *testing.T) (*mocks.MockBookStore, *krogo.Context, svc) {
 	mockCtrl := gomock.NewController(t)
@@ -129,7 +128,7 @@ func TestSvc_Delete(t *testing.T) {
 			mock.EXPECT().Delete(ctx, id1).Return(errors.InvalidParam{Param: []string{"id"}}),
 		},
 	}
-	
+
 	for _, tc := range tests {
 		err := s.Delete(ctx, tc.id, tc.user)
 		assert.Equal(t, tc.err, err, tc.desc)
@@ -274,7 +273,7 @@ func TestSvc_GetByID(t *testing.T) {
 	for _, tc := range tests {
 		book, err := s.GetByID(ctx, tc.id)
 		assert.Equal(t, tc.err, err, tc.desc)
-		assert.Equal(t, tc.resp, resp, tc.desc)
+		assert.Equal(t, tc.res, book, tc.desc)
 	}
 }
 
