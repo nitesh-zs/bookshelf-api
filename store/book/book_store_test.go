@@ -17,10 +17,6 @@ import (
 	"github.com/nitesh-zs/bookshelf-api/model"
 )
 
-func getID() uuid.UUID {
-	return uuid.New()
-}
-
 func getNewBook(id uuid.UUID) *model.Book {
 	return &model.Book{
 		ID:        id,
@@ -104,7 +100,7 @@ func bookRes2() *model.BookRes {
 func TestStore_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	id1 := getID()
+	id1 := uuid.New()
 	tests := []struct {
 		desc string
 		id   uuid.UUID
@@ -189,7 +185,7 @@ func TestStore_Get(t *testing.T) {
 
 func TestStore_Update(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-	id := getID()
+	id := uuid.New()
 	book1 := getNewBook(id)
 	bookRes1 := getNewBookRes(id)
 
@@ -286,7 +282,7 @@ func TestStore_GetByID(t *testing.T) {
 
 func TestStore_Create(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-	id := getID()
+	id := uuid.New()
 	book1 := getNewBook(id)
 	bookRes1 := getNewBookRes(id)
 	tests := []struct {
@@ -301,7 +297,7 @@ func TestStore_Create(t *testing.T) {
 			book1,
 			bookRes1,
 			nil,
-			mock.ExpectExec(createBook).WithArgs(book1.ID.String(), book1.Title,
+			mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
 				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
 				book1.Publisher, book1.Language, book1.ImageURI).WillReturnResult(
 				sqlmock.NewResult(0, 1),
@@ -311,16 +307,20 @@ func TestStore_Create(t *testing.T) {
 			"DB error",
 			book1,
 			nil,
-			errors.DB{Err: errors.Error("cannot create object")},
-			mock.ExpectExec(createBook).WithArgs(book1.ID.String(), book1.Title,
+			errors.DB{Err: errors.DB{}},
+			mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
 				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
 				book1.Publisher, book1.Language, book1.ImageURI).WillReturnError(
-				errors.DB{Err: errors.Error("cannot create object")}),
+				errors.DB{Err: nil}),
 		},
 	}
 
 	for _, tc := range tests {
 		book, err := s.Create(ctx, tc.book)
+		if err == nil {
+			tc.resp.ID = book.ID
+		}
+
 		assert.Equal(t, tc.resp, book, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}

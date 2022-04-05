@@ -102,7 +102,6 @@ func (h handler) Create(ctx *krogo.Context) (interface{}, error) {
 		return nil, errors.InvalidParam{Param: []string{"body"}}
 	}
 
-	book.ID = uuid.New()
 	resp, err := h.svc.Create(ctx, &book, &model.User{})
 
 	if err != nil {
@@ -122,8 +121,9 @@ func (h handler) Update(ctx *krogo.Context) (interface{}, error) {
 
 	var book model.Book
 
-	if err2 := ctx.Bind(&book); err2 != nil {
-		ctx.Logger.Error("We could not bind the data")
+	err = ctx.Bind(&book)
+	if err != nil {
+		ctx.Logger.Error("bind error")
 		return nil, errors.InvalidParam{Param: []string{"body"}}
 	}
 

@@ -19,10 +19,6 @@ func getUser() *model.User {
 	}
 }
 
-func getID() uuid.UUID {
-	return uuid.New()
-}
-
 func getNewBook(id uuid.UUID) *model.Book {
 	return &model.Book{
 		ID:        id,
@@ -98,7 +94,7 @@ func filter() *model.Filters {
 func TestSvc_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
-	id1 := getID()
+	id1 := uuid.New()
 	tests := []struct {
 		desc      string
 		id        uuid.UUID
@@ -117,7 +113,7 @@ func TestSvc_Delete(t *testing.T) {
 			"DB Error",
 			id1,
 			&model.User{Type: "admin"},
-			errors.DB{},
+			errors.DB{Err: errors.DB{}},
 			mock.EXPECT().Delete(ctx, id1).Return(errors.DB{}),
 		},
 		{
@@ -186,7 +182,7 @@ func TestSvc_Get(t *testing.T) {
 
 func TestSvc_Create(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-	id := getID()
+	id := uuid.New()
 	tests := []struct {
 		desc      string
 		book      *model.Book
@@ -204,12 +200,12 @@ func TestSvc_Create(t *testing.T) {
 			mock.EXPECT().Create(ctx, getNewBook(id)).Return(getNewBookRes(id), nil),
 		},
 		{
-			"DB Error",
-			getNewBook(id),
-			getUser(),
-			nil,
-			errors.DB{},
-			mock.EXPECT().Create(ctx, getNewBook(id)).Return(nil, errors.DB{}),
+			desc:      "DB Error",
+			book:      getNewBook(id),
+			user:      getUser(),
+			resp:      nil,
+			err:       errors.DB{Err: errors.DB{}},
+			mockStore: mock.EXPECT().Create(ctx, getNewBook(id)).Return(nil, errors.DB{}),
 		},
 		{
 			desc: "no object",
@@ -278,7 +274,7 @@ func TestSvc_GetByID(t *testing.T) {
 }
 
 func TestSvc_Update(t *testing.T) {
-	id := getID()
+	id := uuid.New()
 	mock, ctx, s := initializeTest(t)
 	tests := []struct {
 		desc      string
@@ -293,7 +289,7 @@ func TestSvc_Update(t *testing.T) {
 			getNewBook(id),
 			getUser(),
 			nil,
-			errors.DB{},
+			errors.DB{Err: errors.DB{}},
 			mock.EXPECT().Update(ctx, getNewBook(id)).Return(nil, errors.DB{}),
 		},
 		{
