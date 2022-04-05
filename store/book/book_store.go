@@ -113,13 +113,18 @@ func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 		return nil, errors.DB{Err: err}
 	}
 
-	response, err := s.GetByID(ctx, book.ID)
-
-	if err != nil {
-		return nil, errors.DB{Err: err}
+	var bookRes1 = &model.BookRes{
+		ID:        book.ID,
+		Title:     book.Title,
+		Author:    book.Author,
+		Summary:   book.Summary,
+		Genre:     book.Genre,
+		Year:      book.Year,
+		Publisher: book.Publisher,
+		ImageURI:  book.ImageURI,
 	}
 
-	return response, nil
+	return bookRes1, nil
 }
 
 func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
