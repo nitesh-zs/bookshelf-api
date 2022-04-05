@@ -62,7 +62,13 @@ func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
 		return errors.InvalidParam{Param: []string{"id"}}
 	}
 
-	err := s.store.Delete(ctx, id)
+	_, err := s.store.GetByID(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
+	err = s.store.Delete(ctx, id)
 
 	if err != nil {
 		return errors.DB{Err: err}

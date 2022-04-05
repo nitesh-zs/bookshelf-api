@@ -95,12 +95,14 @@ func TestSvc_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
 	id1 := uuid.New()
+
 	tests := []struct {
-		desc      string
-		id        uuid.UUID
-		user      *model.User
-		err       error
-		mockStore *gomock.Call
+		desc             string
+		id               uuid.UUID
+		user             *model.User
+		err              error
+		mockStoreDelete  *gomock.Call
+		mockStoreGetByID *gomock.Call
 	}{
 		{
 			"success",
@@ -108,6 +110,7 @@ func TestSvc_Delete(t *testing.T) {
 			&model.User{Type: "admin"},
 			nil,
 			mock.EXPECT().Delete(ctx, id1).Return(nil),
+			mock.EXPECT().GetByID(ctx, id1).Return(getNewBookRes(id1), nil),
 		},
 		{
 			"DB Error",
@@ -115,13 +118,22 @@ func TestSvc_Delete(t *testing.T) {
 			&model.User{Type: "admin"},
 			errors.DB{Err: errors.DB{}},
 			mock.EXPECT().Delete(ctx, id1).Return(errors.DB{}),
+			mock.EXPECT().GetByID(ctx, id1).Return(getNewBookRes(id1), nil),
 		},
 		{
-			"DB Error",
-			uuid.Nil,
+			desc:            "DB Error",
+			id:              uuid.Nil,
+			user:            &model.User{Type: "admin"},
+			err:             errors.InvalidParam{Param: []string{"id"}},
+			mockStoreDelete: mock.EXPECT().Delete(ctx, id1).Return(errors.InvalidParam{Param: []string{"id"}}),
+		},
+		{
+			"Entity not exist",
+			id1,
 			&model.User{Type: "admin"},
-			errors.InvalidParam{Param: []string{"id"}},
-			mock.EXPECT().Delete(ctx, id1).Return(errors.InvalidParam{Param: []string{"id"}}),
+			errors.EntityNotFound{},
+			mock.EXPECT().GetByID(ctx, id1).Return(nil, errors.EntityNotFound{}),
+			mock.EXPECT().Delete(ctx, id1).Return(errors.EntityNotFound{}),
 		},
 	}
 
