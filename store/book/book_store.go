@@ -103,8 +103,10 @@ func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, err
 }
 
 func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	query := getUpdateQuery(book)
-	_, err := ctx.DB().Exec(query)
+	_, err := ctx.DB().Exec(
+		updateBook, book.Title, book.Author, book.Summary, book.Genre, book.Year,
+		book.RegNum, book.Publisher, book.Language, book.ImageURI, book.ID,
+	)
 
 	if err != nil {
 		return nil, errors.DB{Err: err}
@@ -161,6 +163,7 @@ func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
 	return nil
 }
 
+/*
 func getUpdateQuery(book *model.Book) string {
 	/*
 		update book set
@@ -175,7 +178,7 @@ func getUpdateQuery(book *model.Book) string {
 		language='Hindi',
 		image_uri=''
 		where id='18f8fb8a-689e-45f4-bcd8-4224f07998e2'
-	*/
+
 	query := "update book set"
 	query += " title=" + "'" + book.Title + "'"
 	query += ", author=" + "'" + book.Author + "'"
@@ -190,6 +193,7 @@ func getUpdateQuery(book *model.Book) string {
 
 	return query
 }
+*/
 
 func (s store) getQueryBuilder(f *model.Filters) string {
 	query := `select id, title, author, genre, image_uri from book`

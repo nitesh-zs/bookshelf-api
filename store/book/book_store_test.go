@@ -208,7 +208,11 @@ func TestStore_Update(t *testing.T) {
 			book1,
 			bookRes1,
 			nil,
-			mock.ExpectExec(getUpdateQuery(book1)).WillReturnResult(sqlmock.NewResult(0, 1)),
+			mock.ExpectExec(updateBook).
+				WithArgs(book1.Title, book1.Author, book1.Summary,
+					book1.Genre, book1.Year, book1.RegNum, book1.Publisher,
+					book1.Language, book1.ImageURI, book1.ID).
+				WillReturnResult(sqlmock.NewResult(0, 1)),
 			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
 		{
@@ -216,7 +220,11 @@ func TestStore_Update(t *testing.T) {
 			book1,
 			nil,
 			errors.DB{Err: errors.Error("DB Error")},
-			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.Error("DB Error")),
+			mock.ExpectExec(updateBook).WithArgs(
+				book1.Title, book1.Author, book1.Summary,
+				book1.Genre, book1.Year, book1.RegNum, book1.Publisher,
+				book1.Language, book1.ImageURI, book1.ID).WillReturnError(
+				errors.Error("DB Error")),
 			mock.ExpectQuery(getByID).WithArgs(book1.ID).WillReturnRows(row),
 		},
 	}
@@ -304,7 +312,10 @@ func TestStore_Create(t *testing.T) {
 			book1,
 			nil,
 			errors.DB{Err: errors.Error("cannot create object")},
-			mock.ExpectExec(getUpdateQuery(book1)).WillReturnError(errors.DB{Err: errors.Error("cannot create object")}),
+			mock.ExpectExec(createBook).WithArgs(book1.ID.String(), book1.Title,
+				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
+				book1.Publisher, book1.Language, book1.ImageURI).WillReturnError(
+				errors.DB{Err: errors.Error("cannot create object")}),
 		},
 	}
 
