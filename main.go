@@ -34,23 +34,6 @@ func main() {
 	seeder := datastore.NewSeeder(&k.DataStore, "./configs")
 	seeder.RefreshTables(&testing.T{}, "book")
 
-	//nolint:gocritic //will remove the code later upon finalization of client side auth flow
-	// conf := &oauth2.Config{
-	//	ClientID:     k.Config.Get("CLIENT_ID"),
-	//	ClientSecret: k.Config.Get("CLIENT_SECRET"),
-	//	RedirectURL:  k.Config.Get("REDIRECT_URL"),
-	//	Scopes: []string{
-	//		"email",
-	//		"openid",
-	//		"profile",
-	//	},
-	//	Endpoint: google.Endpoint,
-	// }
-
-	// set auth middleware
-	// k.Server.UseMiddleware(middleware.Login(conf), middleware.Redirect(conf),
-	// middleware.ValidateToken(conf), middleware.Logout)
-
 	uStore := user.New()
 	userSvc := uSvc.New(uStore)
 	authHandler := auth.New(userSvc)
