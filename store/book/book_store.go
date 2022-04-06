@@ -80,23 +80,6 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return book, nil
 }
 
-func (s store) GetByRegNum(ctx *krogo.Context, regNum string) (*model.BookRes, error) {
-	book := &model.BookRes{}
-
-	row := ctx.DB().QueryRow(getByRegNum, regNum)
-	err := row.Scan(&book.ID, &book.Title, &book.Author, &book.Summary, &book.Genre, &book.Year, &book.Publisher, &book.ImageURI)
-
-	if err == sql.ErrNoRows {
-		return nil, errors.EntityNotFound{Entity: "book", ID: regNum}
-	}
-
-	if err != nil {
-		return nil, errors.DB{Err: err}
-	}
-
-	return book, nil
-}
-
 func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
 	// check if book already exist
 	var uid uuid.UUID
