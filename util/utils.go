@@ -14,16 +14,15 @@ import (
 func GetTokenData(ctx *krogo.Context) (*model.User, error) {
 	tData := model.User{}
 
-	token, err := ctx.Request().Cookie("auth")
-	if err != nil {
-		ctx.Logger.Error(err)
+	token := ctx.Request().Header.Get("Authorization")
+	if token == "" {
 		return nil, errors.Unauthenticated{}
 	}
 
 	client := http.DefaultClient
 
 	req, _ := http.NewRequest(http.MethodGet, "https://openidconnect.googleapis.com/v1/userinfo", http.NoBody)
-	req.Header.Set("Authorization", "Bearer "+token.Value)
+	req.Header.Set("Authorization", token)
 
 	res, err := client.Do(req)
 	if err != nil {
@@ -77,9 +76,4 @@ func Pagination(ctx *krogo.Context) (*model.Page, error) {
 	}
 
 	return page, nil
-}
-
-// FilterList returns a list of available filters for querying books
-func FilterList() []string {
-	return []string{"genre", "author", "year", "language"}
 }
