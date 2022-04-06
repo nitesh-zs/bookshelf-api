@@ -46,7 +46,7 @@ func main() {
 		return "hello", nil
 	})
 
-	k.GET("/login", authHandler.Login)
+	k.POST("/login", authHandler.Login)
 	k.GET("/book", bookHandler.Get)
 	k.GET("/book/{id}", bookHandler.GetByID)
 	k.GET("/list/{param}", bookHandler.GetFilters)

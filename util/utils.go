@@ -1,10 +1,11 @@
 package util
 
 import (
-	"golang.org/x/net/context"
-	"google.golang.org/api/idtoken"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/context"
+	"google.golang.org/api/idtoken"
 
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"

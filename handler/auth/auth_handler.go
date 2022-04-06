@@ -23,11 +23,7 @@ func (h handler) Login(ctx *krogo.Context) (interface{}, error) {
 		return nil, errors.Unauthenticated{}
 	}
 
-	ok, err := h.svc.Exists(ctx, user.Email)
-	if err != nil {
-		return nil, err
-	}
-
+	ok, _ := h.svc.Exists(ctx, user.Email)
 	// if user not exists, create one
 	if !ok {
 		err := h.svc.Create(ctx, user)
