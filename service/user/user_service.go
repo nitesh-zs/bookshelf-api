@@ -25,7 +25,7 @@ func (s svc) Exists(ctx *krogo.Context, email string) (bool, error) {
 }
 
 func (s svc) Create(ctx *krogo.Context, user *model.User) error {
-	if user.Email == "nitesh.saxena@zopsmart.com" {
+	if user.Email == ctx.Config.Get("ADMIN") {
 		user.Type = "admin"
 	} else {
 		user.Type = "general"

@@ -5,8 +5,10 @@ import (
 	dbmigration "github.com/krogertechnology/krogo/cmd/krogo/migration/dbMigration"
 )
 
-func All() map[string]dbmigration.Migrator {
+func All() map[string]dbmigration.Migrator{
 	return map[string]dbmigration.Migrator{
-		"20220328222746": K20220328222746{},
+	
+		"20220328222746": K20220328222746{},	
+		"20220406123607": K20220406123607{},
 	}
 }

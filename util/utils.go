@@ -1,10 +1,11 @@
 package util
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
 	"strconv"
+	"strings"
+
+	"golang.org/x/net/context"
+	"google.golang.org/api/idtoken"
 
 	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
@@ -12,40 +13,22 @@ import (
 )
 
 func GetTokenData(ctx *krogo.Context) (*model.User, error) {
-	tData := model.User{}
+	tData := &model.User{}
 
-	token, err := ctx.Request().Cookie("auth")
-	if err != nil {
-		ctx.Logger.Error(err)
+	token := ctx.Request().Header.Get("Authorization")
+	if token == "" {
 		return nil, errors.Unauthenticated{}
 	}
 
-	client := http.DefaultClient
+	token = strings.TrimPrefix(token, "Bearer ")
+	token = strings.TrimSpace(token)
 
-	req, _ := http.NewRequest(http.MethodGet, "https://openidconnect.googleapis.com/v1/userinfo", http.NoBody)
-	req.Header.Set("Authorization", "Bearer "+token.Value)
+	payload, _ := idtoken.Validate(context.Background(), token, "")
 
-	res, err := client.Do(req)
-	if err != nil {
-		ctx.Logger.Error(err)
-		return nil, errors.InternalServerErr{}
-	}
+	tData.Name = payload.Claims["name"].(string)
+	tData.Email = payload.Claims["email"].(string)
 
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		ctx.Logger.Error(err)
-		return nil, errors.InternalServerErr{}
-	}
-
-	err = json.Unmarshal(body, &tData)
-	if err != nil {
-		ctx.Logger.Error(err)
-		return nil, errors.InternalServerErr{}
-	}
-
-	return &tData, nil
+	return tData, nil
 }
 
 // Pagination filters page query parameter and returns page instance
@@ -77,9 +60,4 @@ func Pagination(ctx *krogo.Context) (*model.Page, error) {
 	}
 
 	return page, nil
-}
-
-// FilterList returns a list of available filters for querying books
-func FilterList() []string {
-	return []string{"genre", "author", "year", "language"}
 }

@@ -1,3 +1,4 @@
+// nolint:dupl //Cannot use same test for different migrations
 package migrations
 
 import (
