@@ -16,14 +16,17 @@ func New(s service.UserSvc) handler {
 	return handler{s}
 }
 
-func (h handler) Register(ctx *krogo.Context) (interface{}, error) {
+func (h handler) Login(ctx *krogo.Context) (interface{}, error) {
 	// get user data
 	user, err := util.GetTokenData(ctx)
 	if err != nil {
 		return nil, errors.Unauthenticated{}
 	}
 
-	ok, _ := h.svc.Exists(ctx, user.Email)
+	ok, err := h.svc.Exists(ctx, user.Email)
+	if err != nil {
+		return nil, err
+	}
 
 	// if user not exists, create one
 	if !ok {
@@ -32,8 +35,6 @@ func (h handler) Register(ctx *krogo.Context) (interface{}, error) {
 			return nil, err
 		}
 	}
-
-	ctx.GET("/hello", nil)
 
 	return "success", nil
 }

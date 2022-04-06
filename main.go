@@ -63,7 +63,7 @@ func main() {
 		return "hello", nil
 	})
 
-	k.GET("/register", authHandler.Register)
+	k.GET("/login", authHandler.Login)
 	k.GET("/book", bookHandler.Get)
 	k.GET("/book/{id}", bookHandler.GetByID)
 	k.GET("/list/{param}", bookHandler.GetFilters)
