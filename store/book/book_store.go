@@ -2,6 +2,7 @@ package book
 
 import (
 	"database/sql"
+	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -79,28 +80,62 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return book, nil
 }
 
-func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
-	id := uuid.New()
-	_, err := ctx.DB().Exec(createBook, id.String(), book.Title, book.Author,
-		book.Summary, book.Genre, book.Year, book.RegNum,
-		book.Publisher, book.Language, book.ImageURI)
+func (s store) GetByRegNum(ctx *krogo.Context, regNum string) (*model.BookRes, error) {
+	book := &model.BookRes{}
+
+	row := ctx.DB().QueryRow(getByRegNum, regNum)
+	err := row.Scan(&book.ID, &book.Title, &book.Author, &book.Summary, &book.Genre, &book.Year, &book.Publisher, &book.ImageURI)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.EntityNotFound{Entity: "book", ID: regNum}
+	}
 
 	if err != nil {
 		return nil, errors.DB{Err: err}
 	}
 
-	var bookRes1 = &model.BookRes{
-		ID:        id,
-		Title:     book.Title,
-		Author:    book.Author,
-		Summary:   book.Summary,
-		Genre:     book.Genre,
-		Year:      book.Year,
-		Publisher: book.Publisher,
-		ImageURI:  book.ImageURI,
+	return book, nil
+}
+
+func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
+	// check if book already exist
+	var uid uuid.UUID
+
+	row := ctx.DB().QueryRow(getByRegNum, book.RegNum)
+	err := row.Scan(&uid)
+
+	if err == nil {
+		return nil, errors.MultipleErrors{
+			StatusCode: http.StatusConflict,
+			Errors:     []error{errors.EntityAlreadyExists{}},
+		}
 	}
 
-	return bookRes1, nil
+	if err == sql.ErrNoRows {
+		id := uuid.New()
+		_, err = ctx.DB().Exec(createBook, id.String(), book.Title, book.Author,
+			book.Summary, book.Genre, book.Year, book.RegNum,
+			book.Publisher, book.Language, book.ImageURI)
+
+		if err != nil {
+			return nil, errors.DB{Err: err}
+		}
+
+		var bookRes1 = &model.BookRes{
+			ID:        id,
+			Title:     book.Title,
+			Author:    book.Author,
+			Summary:   book.Summary,
+			Genre:     book.Genre,
+			Year:      book.Year,
+			Publisher: book.Publisher,
+			ImageURI:  book.ImageURI,
+		}
+
+		return bookRes1, nil
+	}
+
+	return nil, errors.DB{Err: err}
 }
 
 func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {

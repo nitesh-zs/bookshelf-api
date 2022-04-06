@@ -37,7 +37,7 @@ func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 	resp, err := s.store.Create(ctx, book)
 
 	if err != nil {
-		return nil, errors.DB{Err: err}
+		return nil, err
 	}
 
 	return resp, nil
@@ -51,7 +51,7 @@ func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 	resp, err := s.store.Update(ctx, book)
 
 	if err != nil {
-		return nil, errors.DB{Err: err}
+		return nil, err
 	}
 
 	return resp, nil
@@ -71,7 +71,7 @@ func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
 	err = s.store.Delete(ctx, id)
 
 	if err != nil {
-		return errors.DB{Err: err}
+		return err
 	}
 
 	return nil

@@ -216,7 +216,7 @@ func TestSvc_Create(t *testing.T) {
 			book:      getNewBook(id),
 			user:      getUser(),
 			resp:      nil,
-			err:       errors.DB{Err: errors.DB{}},
+			err:       errors.DB{},
 			mockStore: mock.EXPECT().Create(ctx, getNewBook(id)).Return(nil, errors.DB{}),
 		},
 		{
