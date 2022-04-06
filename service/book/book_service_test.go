@@ -116,12 +116,12 @@ func TestSvc_Delete(t *testing.T) {
 			"DB Error",
 			id1,
 			&model.User{Type: "admin"},
-			errors.DB{Err: errors.DB{}},
+			errors.DB{},
 			mock.EXPECT().Delete(ctx, id1).Return(errors.DB{}),
 			mock.EXPECT().GetByID(ctx, id1).Return(getNewBookRes(id1), nil),
 		},
 		{
-			desc:            "DB Error",
+			desc:            "Invalid Param",
 			id:              uuid.Nil,
 			user:            &model.User{Type: "admin"},
 			err:             errors.InvalidParam{Param: []string{"id"}},
@@ -301,7 +301,7 @@ func TestSvc_Update(t *testing.T) {
 			getNewBook(id),
 			getUser(),
 			nil,
-			errors.DB{Err: errors.DB{}},
+			errors.DB{},
 			mock.EXPECT().Update(ctx, getNewBook(id)).Return(nil, errors.DB{}),
 		},
 		{
