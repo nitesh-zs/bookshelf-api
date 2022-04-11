@@ -39,7 +39,7 @@ func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 	// check if book already exist
 	exists, err := s.store.IsExist(ctx, nil, &book.RegNum)
 	if err != nil {
-		return nil, errors.DB{Err: err}
+		return nil, err
 	}
 
 	if exists {
@@ -66,7 +66,7 @@ func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 
 	exists, err := s.store.IsExist(ctx, &book.ID, nil)
 	if err != nil {
-		return nil, errors.DB{Err: err}
+		return nil, err
 	}
 
 	if !exists {
@@ -90,7 +90,7 @@ func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
 	exists, err := s.store.IsExist(ctx, &id, nil)
 
 	if err != nil {
-		return errors.DB{Err: err}
+		return err
 	}
 
 	if !exists {
