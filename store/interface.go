@@ -24,4 +24,5 @@ type BookStore interface {
 	Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error)
 	GetFilters(ctx *krogo.Context, filter string) ([]string, error)
 	Delete(ctx *krogo.Context, id uuid.UUID) error
+	IsExist(ctx *krogo.Context, id *uuid.UUID, regNum *string) (bool, error)
 }
