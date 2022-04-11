@@ -13,8 +13,37 @@ import (
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/krogertechnology/krogo/pkg/krogo/config"
 	"github.com/krogertechnology/krogo/pkg/log"
+
 	"github.com/nitesh-zs/bookshelf-api/model"
 )
+
+func getNewBook(id uuid.UUID) *model.Book {
+	return &model.Book{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		RegNum:    "ISB8726W821",
+		Publisher: "Rajpal Publishing",
+		Language:  "Hindi",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
+}
+
+func getNewBookRes(id uuid.UUID) *model.BookRes {
+	return &model.BookRes{
+		ID:        id,
+		Title:     "Madhushala",
+		Author:    "Harivansh Rai Bachchan",
+		Summary:   "This is short summary",
+		Genre:     "Poetry",
+		Year:      1997,
+		Publisher: "Rajpal Publishing",
+		ImageURI:  "https://images-na.ssl-images-amazon.com/images/I/71Hc0nX3UHL.jpg",
+	}
+}
 
 func initializeTest(t *testing.T) (sqlmock.Sqlmock, *krogo.Context, store) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
@@ -65,6 +94,36 @@ func bookRes2() *model.BookRes {
 		Year:      2000,
 		Publisher: "Random",
 		ImageURI:  "image.com/woo-hoo",
+	}
+}
+
+func TestStore_Delete(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+
+	id1 := uuid.New()
+	tests := []struct {
+		desc string
+		id   uuid.UUID
+		err  error
+		exec *sqlmock.ExpectedExec
+	}{
+		{
+			"Success",
+			id1,
+			nil,
+			mock.ExpectExec(`DELETE FROM book WHERE id=$1`).WithArgs(id1).WillReturnResult(sqlmock.NewResult(0, 1)),
+		},
+		{
+			"DB error",
+			id1,
+			errors.DB{Err: errors.Error("DB Error")},
+			mock.ExpectExec(`DELETE FROM book WHERE id=$1`).WillReturnError(errors.Error("DB Error")),
+		},
+	}
+
+	for _, tc := range tests {
+		err := s.Delete(ctx, tc.id)
+		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }
 
@@ -124,6 +183,50 @@ func TestStore_Get(t *testing.T) {
 	}
 }
 
+func TestStore_Update(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+	id := uuid.New()
+	book1 := getNewBook(id)
+	bookRes1 := getNewBookRes(id)
+
+	tests := []struct {
+		desc string
+		book *model.Book
+		resp *model.BookRes
+		err  error
+		exec *sqlmock.ExpectedExec
+	}{
+		{
+			"Success",
+			book1,
+			bookRes1,
+			nil,
+			mock.ExpectExec(updateBook).
+				WithArgs(book1.Title, book1.Author, book1.Summary,
+					book1.Genre, book1.Year, book1.RegNum, book1.Publisher,
+					book1.Language, book1.ImageURI, book1.ID).
+				WillReturnResult(sqlmock.NewResult(0, 1)),
+		},
+		{
+			"DB error",
+			book1,
+			nil,
+			errors.DB{Err: errors.Error("DB Error")},
+			mock.ExpectExec(updateBook).WithArgs(
+				book1.Title, book1.Author, book1.Summary,
+				book1.Genre, book1.Year, book1.RegNum, book1.Publisher,
+				book1.Language, book1.ImageURI, book1.ID).WillReturnError(
+				errors.Error("DB Error")),
+		},
+	}
+
+	for _, tc := range tests {
+		bookRes, err := s.Update(ctx, tc.book)
+		assert.Equal(t, tc.err, err, tc.desc)
+		assert.Equal(t, tc.resp, bookRes, tc.desc)
+	}
+}
+
 func TestStore_GetByID(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 
@@ -167,7 +270,53 @@ func TestStore_GetByID(t *testing.T) {
 
 	for _, tc := range tests {
 		book, err := s.GetByID(ctx, tc.id)
+		assert.Equal(t, tc.err, err, tc.desc)
 		assert.Equal(t, tc.res, book, tc.desc)
+	}
+}
+
+func TestStore_Create(t *testing.T) {
+	mock, ctx, s := initializeTest(t)
+	id := uuid.New()
+	book1 := getNewBook(id)
+	bookRes1 := getNewBookRes(id)
+	tests := []struct {
+		desc string
+		book *model.Book
+		resp *model.BookRes
+		err  error
+		exec *sqlmock.ExpectedExec
+	}{
+		{
+			desc: "Success",
+			book: book1,
+			resp: bookRes1,
+			err:  nil,
+			exec: mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
+				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
+				book1.Publisher, book1.Language, book1.ImageURI).WillReturnResult(
+				sqlmock.NewResult(0, 1),
+			),
+		},
+		{
+			desc: "DB error",
+			book: book1,
+			resp: nil,
+			err:  errors.DB{Err: errors.DB{}},
+			exec: mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
+				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
+				book1.Publisher, book1.Language, book1.ImageURI).WillReturnError(
+				errors.DB{Err: nil}),
+		},
+	}
+
+	for _, tc := range tests {
+		book, err := s.Create(ctx, tc.book)
+		if err == nil {
+			tc.resp.ID = book.ID
+		}
+
+		assert.Equal(t, tc.resp, book, tc.desc)
 		assert.Equal(t, tc.err, err, tc.desc)
 	}
 }

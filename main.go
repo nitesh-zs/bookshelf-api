@@ -48,7 +48,11 @@ func main() {
 
 	k.POST("/login", authHandler.Login)
 	k.GET("/book", bookHandler.Get)
+	k.POST("/book", bookHandler.Create)
+	k.PUT("/book/{id}", bookHandler.Update)
+	k.DELETE("/book/{id}", bookHandler.Delete)
 	k.GET("/book/{id}", bookHandler.GetByID)
 	k.GET("/list/{param}", bookHandler.GetFilters)
+
 	k.Start()
 }

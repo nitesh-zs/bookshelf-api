@@ -79,6 +79,55 @@ func (s store) GetByID(ctx *krogo.Context, id uuid.UUID) (*model.BookRes, error)
 	return book, nil
 }
 
+func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
+	// inserting new book into db
+	id := uuid.New()
+	_, err := ctx.DB().Exec(createBook, id.String(), book.Title, book.Author,
+		book.Summary, book.Genre, book.Year, book.RegNum,
+		book.Publisher, book.Language, book.ImageURI)
+
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	var bookRes1 = &model.BookRes{
+		ID:        id,
+		Title:     book.Title,
+		Author:    book.Author,
+		Summary:   book.Summary,
+		Genre:     book.Genre,
+		Year:      book.Year,
+		Publisher: book.Publisher,
+		ImageURI:  book.ImageURI,
+	}
+
+	return bookRes1, nil
+}
+
+func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.BookRes, error) {
+	_, err := ctx.DB().Exec(
+		updateBook, book.Title, book.Author, book.Summary, book.Genre, book.Year,
+		book.RegNum, book.Publisher, book.Language, book.ImageURI, book.ID,
+	)
+
+	if err != nil {
+		return nil, errors.DB{Err: err}
+	}
+
+	var bookRes1 = &model.BookRes{
+		ID:        book.ID,
+		Title:     book.Title,
+		Author:    book.Author,
+		Summary:   book.Summary,
+		Genre:     book.Genre,
+		Year:      book.Year,
+		Publisher: book.Publisher,
+		ImageURI:  book.ImageURI,
+	}
+
+	return bookRes1, nil
+}
+
 func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	filters := []string{}
 
@@ -112,16 +161,49 @@ func (s store) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	return filters, nil
 }
 
-func (s store) Create(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
-	return nil, nil
-}
-
-func (s store) Update(ctx *krogo.Context, book *model.Book) (*model.Book, error) {
-	return nil, nil
-}
-
 func (s store) Delete(ctx *krogo.Context, id uuid.UUID) error {
+	_, err := ctx.DB().Exec(`DELETE FROM book WHERE id=$1 `, id.String())
+	if err != nil {
+		return errors.DB{Err: err}
+	}
+
 	return nil
+}
+
+func (s store) IsExist(ctx *krogo.Context, id *uuid.UUID, regNum *string) (bool, error) {
+	var exists bool
+
+	if id != nil {
+		row := ctx.DB().QueryRow(`SELECT EXISTS(SELECT 1 FROM book WHERE id = $1);`, id)
+		err := row.Scan(&exists)
+
+		if err != nil {
+			return false, err
+		}
+
+		if exists {
+			return true, nil
+		}
+
+		return false, nil
+	}
+
+	if regNum != nil {
+		row := ctx.DB().QueryRow(`SELECT EXISTS(SELECT 1 FROM book WHERE reg_num = $1);`, regNum)
+		err := row.Scan(&exists)
+
+		if err != nil {
+			return false, err
+		}
+
+		if exists {
+			return true, nil
+		}
+
+		return false, nil
+	}
+
+	return false, nil
 }
 
 func (s store) getQueryBuilder(f *model.Filters) string {

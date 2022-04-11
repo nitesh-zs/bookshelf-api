@@ -2,9 +2,12 @@ package book
 
 import (
 	"github.com/google/uuid"
+	"github.com/krogertechnology/krogo/pkg/errors"
 	"github.com/krogertechnology/krogo/pkg/krogo"
 	"github.com/nitesh-zs/bookshelf-api/model"
 	"github.com/nitesh-zs/bookshelf-api/store"
+
+	"net/http"
 )
 
 type svc struct {
@@ -28,14 +31,77 @@ func (s svc) GetFilters(ctx *krogo.Context, filter string) ([]string, error) {
 	return s.store.GetFilters(ctx, filter)
 }
 
-func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.Book, error) {
-	return nil, nil
+func (s svc) Create(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
+	if book == nil {
+		return nil, errors.InvalidParam{Param: []string{"invalid body request"}}
+	}
+
+	// check if book already exist
+	exists, err := s.store.IsExist(ctx, nil, &book.RegNum)
+	if err != nil {
+		return nil, err
+	}
+
+	if exists {
+		return nil, errors.MultipleErrors{
+			StatusCode: http.StatusConflict,
+			Errors:     []error{errors.EntityAlreadyExists{}},
+		}
+	}
+
+	// generating new book
+	resp, err := s.store.Create(ctx, book)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
-func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.Book, error) {
-	return nil, nil
+func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*model.BookRes, error) {
+	if book == nil {
+		return nil, errors.InvalidParam{Param: []string{"invalid body request"}}
+	}
+
+	exists, err := s.store.IsExist(ctx, &book.ID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, errors.EntityNotFound{Entity: "data", ID: book.ID.String()}
+	}
+
+	resp, err := s.store.Update(ctx, book)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
+	if id == uuid.Nil {
+		return errors.InvalidParam{Param: []string{"id"}}
+	}
+
+	exists, err := s.store.IsExist(ctx, &id, nil)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.EntityNotFound{Entity: "data", ID: id.String()}
+	}
+
+	err = s.store.Delete(ctx, id)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
