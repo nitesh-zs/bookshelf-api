@@ -70,7 +70,7 @@ func (s svc) Update(ctx *krogo.Context, book *model.Book, user *model.User) (*mo
 	}
 
 	if !exists {
-		return nil, errors.EntityNotFound{Entity: "id"}
+		return nil, errors.EntityNotFound{Entity: "data", ID: book.ID.String()}
 	}
 
 	resp, err := s.store.Update(ctx, book)
@@ -88,12 +88,13 @@ func (s svc) Delete(ctx *krogo.Context, id uuid.UUID, user *model.User) error {
 	}
 
 	exists, err := s.store.IsExist(ctx, &id, nil)
+
 	if err != nil {
 		return errors.DB{Err: err}
 	}
 
 	if !exists {
-		return errors.EntityNotFound{Entity: "id"}
+		return errors.EntityNotFound{Entity: "data", ID: id.String()}
 	}
 
 	err = s.store.Delete(ctx, id)
