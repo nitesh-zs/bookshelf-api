@@ -280,21 +280,18 @@ func TestStore_Create(t *testing.T) {
 	id := uuid.New()
 	book1 := getNewBook(id)
 	bookRes1 := getNewBookRes(id)
-	row := sqlmock.NewRows([]string{"id"}).AddRow(uuid.NewString())
 	tests := []struct {
-		desc     string
-		book     *model.Book
-		resp     *model.BookRes
-		err      error
-		expQuery *sqlmock.ExpectedQuery
-		exec     *sqlmock.ExpectedExec
+		desc string
+		book *model.Book
+		resp *model.BookRes
+		err  error
+		exec *sqlmock.ExpectedExec
 	}{
 		{
-			desc:     "Success",
-			book:     book1,
-			resp:     bookRes1,
-			err:      nil,
-			expQuery: mock.ExpectQuery(getByRegNum).WithArgs(book1.RegNum).WillReturnError(sql.ErrNoRows),
+			desc: "Success",
+			book: book1,
+			resp: bookRes1,
+			err:  nil,
 			exec: mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
 				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
 				book1.Publisher, book1.Language, book1.ImageURI).WillReturnResult(
@@ -302,25 +299,14 @@ func TestStore_Create(t *testing.T) {
 			),
 		},
 		{
-			desc:     "DB error",
-			book:     book1,
-			resp:     nil,
-			err:      errors.DB{Err: errors.DB{}},
-			expQuery: mock.ExpectQuery(getByRegNum).WithArgs(book1.RegNum).WillReturnError(sql.ErrNoRows),
+			desc: "DB error",
+			book: book1,
+			resp: nil,
+			err:  errors.DB{Err: errors.DB{}},
 			exec: mock.ExpectExec(createBook).WithArgs(sqlmock.AnyArg(), book1.Title,
 				book1.Author, book1.Summary, book1.Genre, book1.Year, book1.RegNum,
 				book1.Publisher, book1.Language, book1.ImageURI).WillReturnError(
 				errors.DB{Err: nil}),
-		},
-		{
-			desc: "entity already exist",
-			book: book1,
-			resp: nil,
-			err: errors.MultipleErrors{
-				StatusCode: 409,
-				Errors:     []error{errors.EntityAlreadyExists{}},
-			},
-			expQuery: mock.ExpectQuery(getByRegNum).WithArgs(book1.RegNum).WillReturnRows(row).WillReturnError(nil),
 		},
 	}
 

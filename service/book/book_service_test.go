@@ -1,6 +1,7 @@
 package book
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -93,47 +94,56 @@ func filter() *model.Filters {
 
 func TestSvc_Delete(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
-
+	//
 	id1 := uuid.New()
 
 	tests := []struct {
-		desc             string
-		id               uuid.UUID
-		user             *model.User
-		err              error
-		mockStoreDelete  *gomock.Call
-		mockStoreGetByID *gomock.Call
+		desc            string
+		id              uuid.UUID
+		user            *model.User
+		err             error
+		mockIsExist     *gomock.Call
+		mockStoreDelete *gomock.Call
 	}{
 		{
-			"success",
+			"Nil UUID",
+			uuid.Nil,
+			&model.User{Type: "admin"},
+			errors.InvalidParam{Param: []string{"id"}},
+			nil,
+			nil,
+		},
+		{
+			"DB Error",
 			id1,
 			&model.User{Type: "admin"},
+			errors.DB{Err: errors.DB{}},
+			mock.EXPECT().IsExist(ctx, &id1, nil).Return(false, errors.DB{}),
 			nil,
-			mock.EXPECT().Delete(ctx, id1).Return(nil),
-			mock.EXPECT().GetByID(ctx, id1).Return(getNewBookRes(id1), nil),
+		},
+		{
+			"Entity not exist",
+			id1,
+			&model.User{Type: "admin"},
+			errors.EntityNotFound{Entity: "id"},
+			mock.EXPECT().IsExist(ctx, &id1, nil).Return(false, nil),
+			nil,
 		},
 		{
 			"DB Error",
 			id1,
 			&model.User{Type: "admin"},
 			errors.DB{},
+			mock.EXPECT().IsExist(ctx, &id1, nil).Return(true, nil),
 			mock.EXPECT().Delete(ctx, id1).Return(errors.DB{}),
-			mock.EXPECT().GetByID(ctx, id1).Return(getNewBookRes(id1), nil),
 		},
 		{
-			desc:            "Invalid Param",
-			id:              uuid.Nil,
-			user:            &model.User{Type: "admin"},
-			err:             errors.InvalidParam{Param: []string{"id"}},
-			mockStoreDelete: mock.EXPECT().Delete(ctx, id1).Return(errors.InvalidParam{Param: []string{"id"}}),
-		},
-		{
-			"Entity not exist",
+			"success",
 			id1,
 			&model.User{Type: "admin"},
-			errors.EntityNotFound{},
-			mock.EXPECT().GetByID(ctx, id1).Return(nil, errors.EntityNotFound{}),
-			mock.EXPECT().Delete(ctx, id1).Return(errors.EntityNotFound{}),
+			nil,
+			mock.EXPECT().IsExist(ctx, &id1, nil).Return(true, nil),
+			mock.EXPECT().Delete(ctx, id1).Return(nil),
 		},
 	}
 
@@ -195,36 +205,63 @@ func TestSvc_Get(t *testing.T) {
 func TestSvc_Create(t *testing.T) {
 	mock, ctx, s := initializeTest(t)
 	id := uuid.New()
+	book := getNewBook(id)
 	tests := []struct {
-		desc      string
-		book      *model.Book
-		user      *model.User
-		resp      *model.BookRes
-		err       error
-		mockStore *gomock.Call
+		desc        string
+		book        *model.Book
+		user        *model.User
+		resp        *model.BookRes
+		err         error
+		mockIsExist *gomock.Call
+		mockCreate  *gomock.Call
 	}{
 		{
+			"no object",
+			nil,
+			getUser(),
+			nil,
+			errors.InvalidParam{Param: []string{"invalid body request"}},
+			nil,
+			nil,
+		},
+		{
+			"DB Error",
+			book,
+			getUser(),
+			nil,
+			errors.DB{Err: errors.DB{}},
+			mock.EXPECT().IsExist(ctx, nil, &book.RegNum).Return(false, errors.DB{}),
+			nil,
+		},
+		{
+			"entity exists",
+			book,
+			getUser(),
+			nil,
+			errors.MultipleErrors{
+				StatusCode: http.StatusConflict,
+				Errors:     []error{errors.EntityAlreadyExists{}},
+			},
+			mock.EXPECT().IsExist(ctx, nil, &book.RegNum).Return(true, nil),
+			nil,
+		},
+		{
+			"DB Error",
+			book,
+			getUser(),
+			nil,
+			errors.DB{},
+			mock.EXPECT().IsExist(ctx, nil, &book.RegNum).Return(false, nil),
+			mock.EXPECT().Create(ctx, book).Return(nil, errors.DB{}),
+		},
+		{
 			"success",
-			getNewBook(id),
+			book,
 			getUser(),
 			getNewBookRes(id),
 			nil,
-			mock.EXPECT().Create(ctx, getNewBook(id)).Return(getNewBookRes(id), nil),
-		},
-		{
-			desc:      "DB Error",
-			book:      getNewBook(id),
-			user:      getUser(),
-			resp:      nil,
-			err:       errors.DB{},
-			mockStore: mock.EXPECT().Create(ctx, getNewBook(id)).Return(nil, errors.DB{}),
-		},
-		{
-			desc: "no object",
-			book: nil,
-			user: getUser(),
-			resp: nil,
-			err:  errors.InvalidParam{Param: []string{"invalid body request"}},
+			mock.EXPECT().IsExist(ctx, nil, &book.RegNum).Return(false, nil),
+			mock.EXPECT().Create(ctx, book).Return(getNewBookRes(id), nil),
 		},
 	}
 
@@ -288,36 +325,60 @@ func TestSvc_GetByID(t *testing.T) {
 func TestSvc_Update(t *testing.T) {
 	id := uuid.New()
 	mock, ctx, s := initializeTest(t)
+	book := getNewBook(id)
 	tests := []struct {
-		desc      string
-		book      *model.Book
-		user      *model.User
-		resp      *model.BookRes
-		err       error
-		mockStore *gomock.Call
+		desc        string
+		book        *model.Book
+		user        *model.User
+		resp        *model.BookRes
+		err         error
+		mockIsExist *gomock.Call
+		mockUpdate  *gomock.Call
 	}{
 		{
-			"error",
-			getNewBook(id),
+			"no object",
+			nil,
+			getUser(),
+			nil,
+			errors.InvalidParam{Param: []string{"invalid body request"}},
+			nil,
+			nil,
+		},
+		{
+			"DB Error",
+			book,
+			getUser(),
+			nil,
+			errors.DB{Err: errors.DB{}},
+			mock.EXPECT().IsExist(ctx, &book.ID, nil).Return(false, errors.DB{}),
+			nil,
+		},
+		{
+			"entity not exists",
+			book,
+			getUser(),
+			nil,
+			errors.EntityNotFound{Entity: "id"},
+			mock.EXPECT().IsExist(ctx, &book.ID, nil).Return(false, nil),
+			nil,
+		},
+		{
+			"DB Error",
+			book,
 			getUser(),
 			nil,
 			errors.DB{},
-			mock.EXPECT().Update(ctx, getNewBook(id)).Return(nil, errors.DB{}),
+			mock.EXPECT().IsExist(ctx, &book.ID, nil).Return(true, nil),
+			mock.EXPECT().Update(ctx, book).Return(nil, errors.DB{}),
 		},
 		{
 			"success",
-			getNewBook(id),
+			book,
 			getUser(),
 			getNewBookRes(id),
 			nil,
-			mock.EXPECT().Update(ctx, getNewBook(id)).Return(getNewBookRes(id), nil),
-		},
-		{
-			desc: "no object",
-			book: nil,
-			user: getUser(),
-			resp: nil,
-			err:  errors.InvalidParam{Param: []string{"invalid body request"}},
+			mock.EXPECT().IsExist(ctx, &book.ID, nil).Return(true, nil),
+			mock.EXPECT().Update(ctx, book).Return(getNewBookRes(id), nil),
 		},
 	}
 
